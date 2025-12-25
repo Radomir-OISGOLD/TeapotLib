@@ -1,0 +1,9 @@
+
+#pragma once
+
+#define VKTEA_VERSION 0.1.0.0
+
+#define VKTEA_VERSION_MAJOR 0
+#define VKTEA_VERSION_MINOR 1
+#define VKTEA_VERSION_PATCH 0
+#define VKTEA_VERSION_BUILD 0
