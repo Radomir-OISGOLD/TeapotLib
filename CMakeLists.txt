@@ -1,12 +1,16 @@
-﻿
-cmake_minimum_required (VERSION 3.3)
+﻿cmake_minimum_required (VERSION 4.0)
 set (CMAKE_CXX_STANDARD 20)
-project("TeapotLib" VERSION 0.1.0.0 LANGUAGES "CXX")
+project("TeapotLib" VERSION 0.1.0.5 LANGUAGES "CXX")
 
 configure_file("${CMAKE_SOURCE_DIR}/version.cmake.in" "${CMAKE_SOURCE_DIR}/include/Teapot/version.hpp")
 file(GLOB_RECURSE PUBLIC_SOURCE "src/*.cpp")
 
 set(LIB_DIR "C:/_libraries")
+
+# Find packages before creating target
+set(glfw3_DIR "C:/_libraries/GLFW/lib/cmake/glfw3")
+find_package(glfw3 REQUIRED)
+find_package(Vulkan REQUIRED)
 
 file(GLOB_RECURSE PUBLIC_HEADERS "include/Teapot/*.hpp")
 add_library(
@@ -16,11 +20,13 @@ add_library(
 	${PUBLIC_SOURCE}
 )
 
-target_include_directories(TeapotLib PRIVATE "include" "C:/_libraries/vk-bootstrap/Compiled/include")
+target_include_directories(TeapotLib PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include" "C:/_libraries/vk-bootstrap/Compiled/include")
+
 target_include_directories(
 	TeapotLib 
 	PUBLIC 
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 	$<INSTALL_INTERFACE:include>
 )
 
@@ -39,11 +45,6 @@ target_link_libraries(
 	glfw
 )
 
-set(glfw3_DIR "C:/_libraries/GLFW/lib/cmake/glfw3")
-
-find_package(glfw3 REQUIRED)
-find_package(Vulkan REQUIRED)
-
 install(
 	TARGETS TeapotLib
 	EXPORT TeapotLibTargets
@@ -54,6 +55,7 @@ install(
 	DIRECTORY "include/" 
 	DESTINATION include
 )
+
 install(
 	EXPORT TeapotLibTargets
 	FILE TeapotLibTargets.cmake

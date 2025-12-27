@@ -3,7 +3,6 @@
 
 #include "Teapot/cap.hpp"
 
-
 namespace Teapot
 {
 	struct Surface;
@@ -14,7 +13,7 @@ namespace Teapot
 	struct PhysDevice
 	{
 
-		PhysDevice(Surface surface);
+		PhysDevice(Surface& surface);
 
 		vkb::PhysicalDevice handle;
 

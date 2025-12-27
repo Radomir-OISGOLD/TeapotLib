@@ -7,7 +7,7 @@
 
 namespace Teapot
 {
-	PhysDevice::PhysDevice(Surface surface)
+	PhysDevice::PhysDevice(Surface& surface)
 	{
 		vkb::PhysicalDeviceSelector selector{ p_instance->handle };
 		auto phys_ret = selector.set_surface(surface.handle).select();

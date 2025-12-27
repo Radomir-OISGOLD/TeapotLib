@@ -5,15 +5,14 @@
 
 namespace Teapot
 {
-
-
-
-	Teapot::Window::Window(const char* title, u32t w, u32t h)
+	Teapot::Window::Window(Instance& instance, const char* title, u32t w, u32t h) :
+		p_instance(&instance)
 	{
+
 		glfwInit();
 
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		GLFWwindow* window = glfwCreateWindow(w, h, title, NULL, NULL);
+		handle = glfwCreateWindow(w, h, title, NULL, NULL);
 
 	}
 
@@ -22,18 +21,20 @@ namespace Teapot
 		glfwDestroyWindow(handle);
 	}
 
-	Surface::Surface()
+	Surface::Surface(Window& window) :
+		p_window(&window)
 	{
-		VkResult glfw_result = glfwCreateWindowSurface(p_window->p_instance->handle, p_window->handle, nullptr, &handle);
+		VkResult glfw_result = glfwCreateWindowSurface(window.p_instance->handle, window.handle, nullptr, &handle);
 		if (glfw_result != VK_SUCCESS) {
 			std::cerr << "Failed to select create window surface. Error: " << std::to_string(glfw_result) << "\n";
 			delete this;
+			return;
 		}
+		p_window->p_surface = this;
 	}
 
 	Surface::~Surface()
 	{
 		vkb::destroy_surface(p_window->p_instance->handle, handle);
 	}
-
 }

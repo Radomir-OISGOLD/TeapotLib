@@ -17,8 +17,11 @@
 #include <VkBootstrap.h>
 #include <vulkan/vk_enum_string_helper.h>
 
-
-
+/*
+ * Concept of encapsulation got sacrificed
+ * to save nerve system. Friends are good,
+ * but in C++ they're just hell.
+ */
 
 namespace Teapot
 {
@@ -43,21 +46,21 @@ namespace Teapot
 	using u16t = uint16_t;
 	using u32t = uint32_t;
 	using u64t = uint64_t;
-	
 
-	//void inline err(const char* message)
-	//{
-	//	throw std::exception(message);
-	//}
 
-	//void inline isVkOk(Result res, const char* message)
-	//{
-	//	if (res != Result::eSuccess)
-	//	{
-	//		std::cout << message << " VkResult code: " << res.error().message() << std::endl;
-	//		err("Vulkan function thrown an error.");
-	//	}
-	//}
+	void inline err(std::string message)
+	{
+		throw std::exception(&message[0]);
+	}
+
+	void inline isVkOk(VkResult res, std::string message)
+	{
+		if (res != VK_SUCCESS)
+		{
+			std::cout << message << " VkResult code: " << string_VkResult(res) << "\n";
+			err("Vulkan function thrown an error.");
+		}
+	}
 
 } // namespace Teapot
 
