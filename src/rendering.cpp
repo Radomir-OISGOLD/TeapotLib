@@ -1,13 +1,14 @@
 
 #include "Teapot/rendering.hpp"
+#include "Teapot/cap.hpp"
 #include "Teapot/device.hpp"
-#include "VkBootstrap.h"
-#include "vulkan/vulkan.hpp"
+#include "Teapot/image.hpp"
+#include <cstddef>
 #include <fstream>
 
 namespace Teapot
 {
-	Queue::Queue(Device device, vkb::QueueType type)
+	Queue::Queue(Device& device, vkb::QueueType type)
 	{
 		auto queue_ret = device.handle.get_queue(type);
 		if (!queue_ret) {
@@ -22,7 +23,7 @@ namespace Teapot
 		delete this;
 	}
 
-	Swapchain::Swapchain(Device device)
+	Swapchain::Swapchain(Device& device)
 	{
 		vkb::SwapchainBuilder swapchain_builder{ device.handle };
 		auto swap_ret = swapchain_builder.build();
@@ -31,7 +32,19 @@ namespace Teapot
 			delete this;
 			return;
 		}
+
 		handle = swap_ret.value();
+
+		auto raw_images = handle.get_images().value();
+		auto raw_views = handle.get_image_views().value();
+
+		for (size_t i = 0; i < raw_images.size(); i++)
+		{
+			Image img = Image(raw_images[i], raw_views[i]);
+			swapchain_images.push_back(&img);
+		}
+		
+		device.p_swapchain = this;
 	}
 
 	Swapchain::~Swapchain()
@@ -39,10 +52,47 @@ namespace Teapot
 		vkb::destroy_swapchain(handle);
 	}
 
+	void Swapchain::initSemaphores(DispatchTable& table)
+	{
+		available_semaphores.resize(TEAPOT_DOUBLE_BUFFERING);
+		finished_semaphore.resize(handle.image_count);
+		in_flight_fences.resize(TEAPOT_DOUBLE_BUFFERING);
+		image_in_flight.resize(handle.image_count, VK_NULL_HANDLE);
+	
+		VkSemaphoreCreateInfo semaphore_info = {};
+		semaphore_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+	
+		VkFenceCreateInfo fence_info = {};
+		fence_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+		fence_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+	
+		for (size_t i = 0; i < handle.image_count; i++) {
+			if (table.handle.createSemaphore(&semaphore_info, nullptr, &finished_semaphore[i]) != VK_SUCCESS) {
+				err("Failed to init semaphores.");
+			}
+		}
+	
+		for (size_t i = 0; i < TEAPOT_DOUBLE_BUFFERING; i++) {
+			if (table.handle.createSemaphore(&semaphore_info, nullptr, &finished_semaphore[i]) != VK_SUCCESS ||
+				table.handle.createFence(&fence_info, nullptr, &in_flight_fences[i]) != VK_SUCCESS) {
+				err("Failed to init semaphores.");
+			}
+		}
+	}
+
+
 	DispatchTable::DispatchTable(Device& device)
 	{
 		handle = device.handle.make_table();
 		p_device = &device;
+	}
+
+	DispatchTable::~DispatchTable()
+	{
+		// for (Framebuffer* buf : framebuffers)
+		// {
+		// 	//destroyFramebuffer(buf->handle, nullptr);
+		// }
 	}
 
 	namespace
@@ -80,10 +130,10 @@ namespace Teapot
     	if (table.handle.createShaderModule(&create_info, nullptr, &shader_module) != VK_SUCCESS) {
         	err("Failed to create shader.");
     	}
-		vk_handle = shader_module;
+		handle = shader_module;
 
 	}
-	Shader::Shader(DispatchTable& table, std::vector<char> inline_shader) :
+	Shader::Shader(DispatchTable& table, std::string inline_shader) :
 		p_table(&table)
 	{
 		VkShaderModuleCreateInfo create_info = {};
@@ -95,13 +145,13 @@ namespace Teapot
     	if (table.handle.createShaderModule(&create_info, nullptr, &shader_module) != VK_SUCCESS) {
         	err("Failed to create shader.");
     	}
-		vk_handle = shader_module;
+		handle = shader_module;
 
 	}
 
 	Shader::~Shader()
 	{
-		p_table->handle.destroyShaderModule(vk_handle, nullptr);
+		p_table->handle.destroyShaderModule(handle, nullptr);
 	}
 
 
@@ -119,14 +169,80 @@ namespace Teapot
 			return;
     	}
 
-		vk_handle = pool;
+		handle = pool;
 	}
 
 
 	CommandPool::~CommandPool()
 	{
-		p_table->handle.destroyCommandPool(vk_handle, nullptr);
+		p_table->handle.destroyCommandPool(handle, nullptr);
 	}
+
+	void CommandPool::allocBuffers(Pipeline& pipeline)
+	{
+		VkExtent2D extent = p_table->p_device->p_swapchain->handle.extent;
+		buffers.resize(p_table->framebuffers.size());
+		
+		VkCommandBufferAllocateInfo allocInfo = {};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.commandPool = handle;
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandBufferCount = (uint32_t)p_table->framebuffers.size();
+	
+		if (p_table->handle.allocateCommandBuffers(&allocInfo, buffers.data()) != VK_SUCCESS)
+		{
+			err("Failed to allocate command buffers.");
+		}
+	
+		for (size_t i = 0; i < buffers.size(); i++) {
+			VkCommandBufferBeginInfo begin_info = {};
+			begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	
+			if (p_table->handle.beginCommandBuffer(buffers[i], &begin_info) != VK_SUCCESS)
+			{
+				err("Failed to begin recording to a cmd buffer.");
+			}
+	
+			VkRenderPassBeginInfo render_pass_info = {};
+			render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+			render_pass_info.renderPass = p_table->p_rend_pass->handle;
+			render_pass_info.framebuffer = p_table->framebuffers[i]->handle;
+			render_pass_info.renderArea.offset = { 0, 0 };
+			render_pass_info.renderArea.extent = extent;
+			VkClearValue clearColor{ { { 0.0f, 0.0f, 0.0f, 1.0f } } };
+			render_pass_info.clearValueCount = 1;
+			render_pass_info.pClearValues = &clearColor;
+	
+			VkViewport viewport = {};
+			viewport.x = 0.0f;
+			viewport.y = 0.0f;
+			viewport.width = extent.width;
+			viewport.height = extent.height;
+			viewport.minDepth = 0.0f;
+			viewport.maxDepth = 1.0f;
+
+			VkRect2D scissor = {};
+			scissor.offset = { 0, 0 };
+			scissor.extent = extent;
+	
+			p_table->handle.cmdSetViewport(buffers[i], 0, 1, &viewport);
+			p_table->handle.cmdSetScissor(buffers[i], 0, 1, &scissor);
+	
+			p_table->handle.cmdBeginRenderPass(buffers[i], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
+	
+			p_table->handle.cmdBindPipeline(buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.handle);
+	
+			p_table->handle.cmdDraw(buffers[i], 3, 1, 0, 0);
+	
+			p_table->handle.cmdEndRenderPass(buffers[i]);
+	
+			if (p_table->handle.endCommandBuffer(buffers[i]) != VK_SUCCESS)
+			{
+				err("Failed to record command buffer.");
+			}
+		}	
+	}
+
 
 	// Very simple approach - expects just 2 main shaders (frag and vert)
 	Pipeline::Pipeline(Swapchain& swapchain, Shader& sh_vert, Shader& shader_frag)
@@ -134,13 +250,13 @@ namespace Teapot
 		VkPipelineShaderStageCreateInfo vert_stage_info = {};
 		vert_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		vert_stage_info.stage = VK_SHADER_STAGE_VERTEX_BIT;
-		vert_stage_info.module = sh_vert.vk_handle;
+		vert_stage_info.module = sh_vert.handle;
 		vert_stage_info.pName = "main";
 	
 		VkPipelineShaderStageCreateInfo frag_stage_info = {};
 		frag_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		frag_stage_info.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-		frag_stage_info.module = shader_frag.vk_handle;
+		frag_stage_info.module = shader_frag.handle;
 		frag_stage_info.pName = "main";
 	
 		VkPipelineShaderStageCreateInfo shader_stages[] = { vert_stage_info, frag_stage_info };
@@ -236,15 +352,151 @@ namespace Teapot
 		pipeline_info.subpass = 0;
 		pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
 	
-		if (sh_vert.p_table->handle.createGraphicsPipelines(VK_NULL_HANDLE, 1, &pipeline_info, nullptr, vk_handle) != VK_SUCCESS) {
+		if (sh_vert.p_table->handle.createGraphicsPipelines(VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &handle) != VK_SUCCESS) {
 			err("Failed to create pipeline");
 		}
+		p_device = swapchain.p_device;
+	}
+
+	Framebuffer::Framebuffer(DispatchTable& table, Swapchain& swapchain, RenderPass& render_pass) :
+		p_table(&table)
+	{
+		//handles.resize(swapchain.swapchain_images.size());
+	
+		for (size_t i = 0; i < swapchain.swapchain_images.size(); i++)
+		{
+			VkImageView attachments[] = { swapchain.swapchain_images[i]->view };
+	
+			VkFramebufferCreateInfo framebuffer_info = {};
+			framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+			framebuffer_info.renderPass = render_pass.handle;
+			framebuffer_info.attachmentCount = 1;
+			framebuffer_info.pAttachments = attachments;
+			framebuffer_info.width = swapchain.handle.extent.width;
+			framebuffer_info.height = swapchain.handle.extent.height;
+			framebuffer_info.layers = 1;
+	
+			if (table.handle.createFramebuffer(&framebuffer_info, nullptr, &handle) != VK_SUCCESS)
+			{
+				err("Failed to create framebuffer");
+			}
+			table.framebuffers.push_back(this);
+		}
+	}
+
+	Framebuffer::~Framebuffer()
+	{
 
 	}
 
-	int drawFrame()
+	RenderPass::RenderPass(Swapchain& swapchain, DispatchTable& table)
 	{
-		
+		VkAttachmentDescription color_attachment = {};
+		color_attachment.format = swapchain.handle.image_format;
+		color_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+		color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		color_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		color_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		color_attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+	
+		VkAttachmentReference color_attachment_ref = {};
+		color_attachment_ref.attachment = 0;
+		color_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	
+		VkSubpassDescription subpass = {};
+		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		subpass.colorAttachmentCount = 1;
+		subpass.pColorAttachments = &color_attachment_ref;
+	
+		VkSubpassDependency dependency = {};
+		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependency.dstSubpass = 0;
+		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency.srcAccessMask = 0;
+		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	
+		VkRenderPassCreateInfo render_pass_info = {};
+		render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		render_pass_info.attachmentCount = 1;
+		render_pass_info.pAttachments = &color_attachment;
+		render_pass_info.subpassCount = 1;
+		render_pass_info.pSubpasses = &subpass;
+		render_pass_info.dependencyCount = 1;
+		render_pass_info.pDependencies = &dependency;
+	
+		if (table.handle.createRenderPass(&render_pass_info, nullptr, &handle) != VK_SUCCESS) {
+			err("Failed to create render pass.");
+		}
+	}
+
+	int drawFrame(size_t* p_frame, DispatchTable& table, Swapchain& chain, )
+	{
+		table.handle.waitForFences(1, &chain.in_flight_fences[*p_frame], VK_TRUE, UINT64_MAX);
+
+		uint32_t image_index = 0;
+		VkResult result = init.disp.acquireNextImageKHR(
+			init.swapchain, UINT64_MAX, data.available_semaphores[data.current_frame], VK_NULL_HANDLE, &image_index);
+	
+		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+			return recreate_swapchain(init, data);
+		} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+			std::cout << "failed to acquire swapchain image. Error " << result << "\n";
+			return -1;
+		}
+	
+		if (data.image_in_flight[image_index] != VK_NULL_HANDLE) {
+			init.disp.waitForFences(1, &data.image_in_flight[image_index], VK_TRUE, UINT64_MAX);
+		}
+		data.image_in_flight[image_index] = data.in_flight_fences[data.current_frame];
+	
+		VkSubmitInfo submitInfo = {};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	
+		VkSemaphore wait_semaphores[] = { data.available_semaphores[data.current_frame] };
+		VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		submitInfo.waitSemaphoreCount = 1;
+		submitInfo.pWaitSemaphores = wait_semaphores;
+		submitInfo.pWaitDstStageMask = wait_stages;
+	
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &data.command_buffers[image_index];
+	
+		VkSemaphore signal_semaphores[] = { data.finished_semaphore[image_index] };
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = signal_semaphores;
+	
+		init.disp.resetFences(1, &data.in_flight_fences[data.current_frame]);
+	
+		if (init.disp.queueSubmit(data.graphics_queue, 1, &submitInfo, data.in_flight_fences[data.current_frame]) != VK_SUCCESS) {
+			std::cout << "failed to submit draw command buffer\n";
+			return -1; //"failed to submit draw command buffer
+		}
+	
+		VkPresentInfoKHR present_info = {};
+		present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	
+		present_info.waitSemaphoreCount = 1;
+		present_info.pWaitSemaphores = signal_semaphores;
+	
+		VkSwapchainKHR swapChains[] = { init.swapchain };
+		present_info.swapchainCount = 1;
+		present_info.pSwapchains = swapChains;
+	
+		present_info.pImageIndices = &image_index;
+	
+		result = init.disp.queuePresentKHR(data.present_queue, &present_info);
+		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+			return recreate_swapchain(init, data);
+		} else if (result != VK_SUCCESS) {
+			std::cout << "failed to present swapchain image\n";
+			return -1;
+		}
+	
+		data.current_frame = (data.current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
+		return 0;
 	}
 
 }

@@ -8,10 +8,16 @@ namespace Teapot
 
 	struct Device;
 	struct Instance;
+	struct Image;
+	struct RenderPass;
+	struct Pipeline;
+	struct CommandBuffer;
+	struct DispatchTable;
+	struct Framebuffer;
 
 	struct Queue
 	{
-		Queue(Device device, vkb::QueueType type);
+		Queue(Device& device, vkb::QueueType type);
 
 		~Queue();
 
@@ -23,12 +29,20 @@ namespace Teapot
 
 	struct Swapchain
 	{
-		Swapchain(Device device);
+		Swapchain(Device& device);
 
 		~Swapchain();
 
-		vkb::Swapchain handle;
+		void initSemaphores(DispatchTable& table);
 
+		vec<VkSemaphore> available_semaphores;
+        vec<VkSemaphore> finished_semaphore;
+        vec<VkFence> in_flight_fences;
+        vec<VkFence> image_in_flight;
+
+		vkb::Swapchain handle;
+		vec<Image*> swapchain_images;
+		
 		Device* p_device;
 	};
 
@@ -38,9 +52,11 @@ namespace Teapot
 
 		~DispatchTable();
 
-		vkb::DispatchTable handle;
-
 		Device* p_device;
+		vec<Framebuffer*> framebuffers;
+		RenderPass* p_rend_pass;
+
+		vkb::DispatchTable handle;
 	};
 
 
@@ -48,14 +64,14 @@ namespace Teapot
 	{
 
 		Shader(DispatchTable& table, const char* file_path);
-		Shader(DispatchTable& table, std::vector<char> inline_shader);	
+		Shader(DispatchTable& table, std::string inline_shader);	
 
 		~Shader();
 
 		vec<char> code;
 		DispatchTable* p_table;
 
-		VkShaderModule vk_handle;
+		VkShaderModule handle;
 
 	};
 
@@ -69,24 +85,56 @@ namespace Teapot
 
 		~CommandPool();
 
-		DispatchTable* p_table;
+		void allocBuffers(Pipeline& pipeline);
 
-		VkCommandPool vk_handle;
+		DispatchTable* p_table;
+		vec<VkCommandBuffer> buffers;
+
+		VkCommandPool handle;
 	};
+	
+	// struct CommandBuffer
+	// {
+	// 	friend struct CommandPool;
+
+	// 	private:	
+	// 	CommandPool* p_pool;
+
+	// 	VkCommandBuffer handle;
+	// };
 
 	struct Pipeline
 	{
-		
 		Pipeline(Swapchain& swapchain, Shader& sh_vert, Shader& shader_frag);
 		~Pipeline();
 
-		VkPipeline* vk_handle;
+		Device* p_device;
+
+		VkPipeline handle;
 		VkPipelineLayout* p_layout;
 		VkRenderPass* p_render_pass;
 
 		VkViewport viewport;
 		VkRect2D scissor;
 	};
+
+	struct RenderPass
+	{
+		RenderPass(Swapchain& swapchain, DispatchTable& table);
+		~RenderPass();
+
+		VkRenderPass handle;
+	};
+
+	struct Framebuffer
+	{
+		Framebuffer(DispatchTable& table, Swapchain& swapchain, RenderPass& render_pass);
+		~Framebuffer();
+
+		DispatchTable* p_table;
+		VkFramebuffer handle;
+	};
+
 
 	int drawFrame();
 }

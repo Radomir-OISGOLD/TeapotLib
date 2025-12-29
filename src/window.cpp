@@ -2,10 +2,11 @@
 #include "Teapot/window.hpp"
 
 #include "Teapot/instance.hpp"
+#include <cstdint>
 
 namespace Teapot
 {
-	Teapot::Window::Window(Instance& instance, const char* title, u32t w, u32t h) :
+	Teapot::Window::Window(Instance& instance, const char* title, unsigned int w, unsigned int h) :
 		p_instance(&instance)
 	{
 

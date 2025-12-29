@@ -26,7 +26,7 @@ namespace Teapot
 		}
 	}
 
-	Device::Device(PhysDevice phys)
+	Device::Device(PhysDevice& phys)
 	{
 		vkb::DeviceBuilder device_builder{ phys.handle };
 

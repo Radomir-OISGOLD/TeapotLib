@@ -5,7 +5,8 @@
 namespace Teapot
 {
 
-    Image::Image(Swapchain& swapchain)
+    Image::Image(VkImage handle, VkImageView view) :
+		handle(handle), view(view)
     {
         
     }

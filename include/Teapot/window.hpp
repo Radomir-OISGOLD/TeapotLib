@@ -10,7 +10,7 @@ namespace Teapot
 
 	struct Window
 	{
-		Window(Instance& instance, const char* title, u32t w, u32t h);
+		Window(Instance& instance, const char* title, unsigned int w, unsigned int h);
 
 		~Window();
 
@@ -31,6 +31,7 @@ namespace Teapot
 
 		Window* p_window;
 	};
+	
 
 }
 

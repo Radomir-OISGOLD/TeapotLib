@@ -2,7 +2,6 @@
 #pragma once
 
 #include "Teapot/cap.hpp"
-#include "Teapot/rendering.hpp"
 
 namespace Teapot
 {
@@ -11,13 +10,12 @@ namespace Teapot
 
 	struct Image
 	{
-
-		Image(Swapchain& swapchain);
+		Image(VkImage handle, VkImageView view);
 
 		~Image();
 
-		vk::Image vk_handle;
-
+		VkImage handle;
+		VkImageView view;
 
 	};
 

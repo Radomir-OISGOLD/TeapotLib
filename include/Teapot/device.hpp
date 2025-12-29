@@ -25,7 +25,7 @@ namespace Teapot
 	struct Device
 	{
 
-		Device(PhysDevice phys);
+		Device(PhysDevice& phys);
 
 		~Device()
 		{
@@ -34,7 +34,7 @@ namespace Teapot
 
 		vkb::Device handle;
 
-		vec<Swapchain*> swapchains;
+		Swapchain* p_swapchain;
 
 		PhysDevice* p_phys_device;
 	};

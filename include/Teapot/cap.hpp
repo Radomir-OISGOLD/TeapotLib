@@ -23,6 +23,8 @@
  * but in C++ they're just hell.
  */
 
+#define TEAPOT_DOUBLE_BUFFERING 2
+
 namespace Teapot
 {
 
