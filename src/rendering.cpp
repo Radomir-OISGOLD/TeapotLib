@@ -48,7 +48,7 @@ namespace Teapot
 	}
 
 	Swapchain::~Swapchain()
-	{
+	{ 
 		vkb::destroy_swapchain(handle);
 	}
 
@@ -172,7 +172,6 @@ namespace Teapot
 		handle = pool;
 	}
 
-
 	CommandPool::~CommandPool()
 	{
 		p_table->handle.destroyCommandPool(handle, nullptr);
@@ -252,6 +251,8 @@ namespace Teapot
 		vert_stage_info.stage = VK_SHADER_STAGE_VERTEX_BIT;
 		vert_stage_info.module = sh_vert.handle;
 		vert_stage_info.pName = "main";
+
+		int var = 0 + 3;
 	
 		VkPipelineShaderStageCreateInfo frag_stage_info = {};
 		frag_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -432,71 +433,87 @@ namespace Teapot
 		}
 	}
 
-	int drawFrame(size_t* p_frame, DispatchTable& table, Swapchain& chain, )
+	void recreateSwapchain(DispatchTable& table)
+	{
+		table.handle.deviceWaitIdle();
+	
+		*table.p_device->p_swapchain = Swapchain(*table.p_device);
+	}
+
+	int drawFrame(size_t* p_frame, DispatchTable& table, Swapchain& chain, CommandPool& pool, Queue& graphics_queue, Queue& present_queue)
 	{
 		table.handle.waitForFences(1, &chain.in_flight_fences[*p_frame], VK_TRUE, UINT64_MAX);
 
 		uint32_t image_index = 0;
-		VkResult result = init.disp.acquireNextImageKHR(
-			init.swapchain, UINT64_MAX, data.available_semaphores[data.current_frame], VK_NULL_HANDLE, &image_index);
-	
-		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-			return recreate_swapchain(init, data);
-		} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-			std::cout << "failed to acquire swapchain image. Error " << result << "\n";
-			return -1;
+		VkResult result = table.handle.acquireNextImageKHR(
+			chain.handle, UINT64_MAX, chain.available_semaphores[*p_frame], VK_NULL_HANDLE, &image_index);
+
+		if (result == VK_ERROR_OUT_OF_DATE_KHR)
+		{
+			recreateSwapchain(table);
+			return 0;
 		}
-	
-		if (data.image_in_flight[image_index] != VK_NULL_HANDLE) {
-			init.disp.waitForFences(1, &data.image_in_flight[image_index], VK_TRUE, UINT64_MAX);
+		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+		{
+			err("Failed to acquire swapchain image.");
 		}
-		data.image_in_flight[image_index] = data.in_flight_fences[data.current_frame];
-	
+
+		if (chain.image_in_flight[image_index] != VK_NULL_HANDLE)
+		{
+			table.handle.waitForFences(1, &chain.image_in_flight[image_index], VK_TRUE, UINT64_MAX);
+		}
+		chain.image_in_flight[image_index] = chain.in_flight_fences[*p_frame];
+
 		VkSubmitInfo submitInfo = {};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	
-		VkSemaphore wait_semaphores[] = { data.available_semaphores[data.current_frame] };
+
+		VkSemaphore wait_semaphores[] = { chain.available_semaphores[*p_frame] };
 		VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 		submitInfo.waitSemaphoreCount = 1;
 		submitInfo.pWaitSemaphores = wait_semaphores;
 		submitInfo.pWaitDstStageMask = wait_stages;
-	
+
 		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &data.command_buffers[image_index];
-	
-		VkSemaphore signal_semaphores[] = { data.finished_semaphore[image_index] };
+		submitInfo.pCommandBuffers = &pool.buffers[image_index];
+
+		VkSemaphore signal_semaphores[] = { chain.finished_semaphore[image_index] };
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = signal_semaphores;
-	
-		init.disp.resetFences(1, &data.in_flight_fences[data.current_frame]);
-	
-		if (init.disp.queueSubmit(data.graphics_queue, 1, &submitInfo, data.in_flight_fences[data.current_frame]) != VK_SUCCESS) {
-			std::cout << "failed to submit draw command buffer\n";
-			return -1; //"failed to submit draw command buffer
+
+		table.handle.resetFences(1, &chain.in_flight_fences[*p_frame]);
+
+		if (table.handle.queueSubmit(graphics_queue.handle, 1, &submitInfo, chain.in_flight_fences[*p_frame]) != VK_SUCCESS)
+		{
+			err("Failed to submit draw command buffer.");
 		}
-	
+
 		VkPresentInfoKHR present_info = {};
 		present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-	
+
 		present_info.waitSemaphoreCount = 1;
 		present_info.pWaitSemaphores = signal_semaphores;
-	
-		VkSwapchainKHR swapChains[] = { init.swapchain };
+
+		VkSwapchainKHR swapChains[] = { chain.handle };
 		present_info.swapchainCount = 1;
 		present_info.pSwapchains = swapChains;
-	
+
 		present_info.pImageIndices = &image_index;
-	
-		result = init.disp.queuePresentKHR(data.present_queue, &present_info);
-		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
-			return recreate_swapchain(init, data);
-		} else if (result != VK_SUCCESS) {
+
+		result = table.handle.queuePresentKHR(present_queue.handle, &present_info);
+		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+		{
+			recreateSwapchain(table);
+			return 0;
+		}
+		else if (result != VK_SUCCESS)
+		{
 			std::cout << "failed to present swapchain image\n";
 			return -1;
 		}
-	
-		data.current_frame = (data.current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
+
+		*p_frame = (*p_frame + 1) % TEAPOT_DOUBLE_BUFFERING;
 		return 0;
 	}
 
 }
+

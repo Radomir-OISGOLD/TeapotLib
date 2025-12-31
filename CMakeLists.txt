@@ -1,6 +1,9 @@
-﻿cmake_minimum_required (VERSION 4.0)
+﻿
+cmake_minimum_required (VERSION 4.0)
 set (CMAKE_CXX_STANDARD 20)
 project("TeapotLib" VERSION 0.1.0.5 LANGUAGES "CXX")
+
+set(MSVC_PATH "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe")
 
 configure_file("${CMAKE_SOURCE_DIR}/version.cmake.in" "${CMAKE_SOURCE_DIR}/include/Teapot/version.hpp")
 file(GLOB_RECURSE PUBLIC_SOURCE "src/*.cpp")
@@ -13,14 +16,11 @@ find_package(glfw3 REQUIRED)
 find_package(Vulkan REQUIRED)
 
 file(GLOB_RECURSE PUBLIC_HEADERS "include/Teapot/*.hpp")
-add_library(
-	TeapotLib 
-	STATIC 
+add_library(TeapotLib STATIC ${PUBLIC_SOURCE})
+add_library(TeapotLib::TeapotLib ALIAS TeapotLib)
 
-	${PUBLIC_SOURCE}
-)
-
-target_include_directories(TeapotLib PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include" "C:/_libraries/vk-bootstrap/Compiled/include")
+target_include_directories(TeapotLib PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(TeapotLib PUBLIC "C:/_libraries/vk-bootstrap/Compiled/include")
 
 target_include_directories(
 	TeapotLib 
@@ -45,6 +45,13 @@ target_link_libraries(
 	glfw
 )
 
+target_include_directories(
+    TeapotLib
+    PUBLIC
+    $<TARGET_PROPERTY:Vulkan::Vulkan,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:glfw,INTERFACE_INCLUDE_DIRECTORIES>
+)
+
 install(
 	TARGETS TeapotLib
 	EXPORT TeapotLibTargets
@@ -59,7 +66,7 @@ install(
 install(
 	EXPORT TeapotLibTargets
 	FILE TeapotLibTargets.cmake
-	NAMESPACE Teapot::
+	NAMESPACE TeapotLib::
 	DESTINATION "${CMAKE_INSTALL_PREFIX}/cmake/TeapotLib"
 )
 

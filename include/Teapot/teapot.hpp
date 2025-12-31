@@ -9,19 +9,18 @@
 #include "Teapot/structures.hpp"
 #include "VkBootstrap.h"
 
-
 namespace Teapot
 {
 
     void inline oneFuncTest(const char* app_name, const char* window_title, unsigned int w, unsigned int h, std::string window_name, std::string inline_vert, std::string inline_frag)
     {
-        std::vector<VkImage> swapchain_images;
-        std::vector<VkImageView> swapchain_image_views;
+        vec<VkImage> swapchain_images;
+        vec<VkImageView> swapchain_image_views;
     
-        std::vector<VkSemaphore> available_semaphores;
-        std::vector<VkSemaphore> finished_semaphore;
-        std::vector<VkFence> in_flight_fences;
-        std::vector<VkFence> image_in_flight;
+        vec<VkSemaphore> available_semaphores;
+        vec<VkSemaphore> finished_semaphore;
+        vec<VkFence> in_flight_fences;
+        vec<VkFence> image_in_flight;
 
         size_t current_frame = 0;
 
