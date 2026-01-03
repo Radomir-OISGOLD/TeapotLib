@@ -11,6 +11,22 @@ namespace Teapot
 	{
 		vkb::PhysicalDeviceSelector selector{ p_instance->handle };
 		auto phys_ret = selector.set_surface(surface.handle).select();
+		std::cout << "Available Vulkan Physical Devices:\n";
+		if (phys_ret) 
+		{
+			auto devices_ret = selector.select_device_names();
+			if (devices_ret) {
+				for (const auto& name : devices_ret.value()) {
+					std::cout << "  " << name << "\n";
+				}
+			}
+			else {
+				std::cerr << "Failed to get Vulkan Physical Device names. Error: " << devices_ret.error().message() << "\n";
+			}
+
+			handle = phys_ret.value();
+			std::cout << "Selected Vulkan Physical Device: " << handle.name << "\n";
+		}
 		if (!phys_ret) {
 			std::cerr << "Failed to select Vulkan Physical Device. Error: " << phys_ret.error().message() << "\n";
 			if (phys_ret.error() == vkb::PhysicalDeviceError::no_suitable_device) {

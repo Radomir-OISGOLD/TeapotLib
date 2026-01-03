@@ -22,6 +22,4 @@ namespace Teapot
 		vec<Window*> windows;
 	};
 
-	vec<Instance> g_instances;
-
 }

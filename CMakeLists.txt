@@ -10,36 +10,38 @@ file(GLOB_RECURSE PUBLIC_SOURCE "src/*.cpp")
 
 set(LIB_DIR "C:/_libraries")
 
+message(STATUS "VULKAN_SDK env: $ENV{VULKAN_SDK}")
+message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
+
 # Find packages before creating target
 set(glfw3_DIR "C:/_libraries/GLFW/lib/cmake/glfw3")
 find_package(glfw3 REQUIRED)
 find_package(Vulkan REQUIRED)
 
 file(GLOB_RECURSE PUBLIC_HEADERS "include/Teapot/*.hpp")
-add_library(TeapotLib STATIC ${PUBLIC_SOURCE})
-add_library(TeapotLib::TeapotLib ALIAS TeapotLib)
+add_library(TeapotLib STATIC ${PUBLIC_SOURCE} "${CMAKE_CURRENT_SOURCE_DIR}/deps/vkb/VkBootstrap.cpp")
 
-target_include_directories(TeapotLib PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
-target_include_directories(TeapotLib PUBLIC "C:/_libraries/vk-bootstrap/Compiled/include")
+target_include_directories(TeapotLib PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/deps/vkb")
 
 target_include_directories(
 	TeapotLib 
 	PUBLIC 
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/deps/vkb>
 	$<INSTALL_INTERFACE:include>
+	$<INSTALL_INTERFACE:include/deps/vkb>
 )
 
 target_link_directories(
 	TeapotLib 
 	PRIVATE 
 	"${LIB_DIR}/slang/lib"
-	"C:/_libraries/vk-bootstrap/Compiled/lib"
 )
 
 target_link_libraries(
 	TeapotLib
-	PUBLIC
+	PRIVATE
 
 	Vulkan::Vulkan
 	glfw
@@ -61,6 +63,10 @@ install(
 install(
 	DIRECTORY "include/" 
 	DESTINATION include
+)
+install(
+	DIRECTORY "deps/vkb" 
+	DESTINATION include/deps
 )
 
 install(

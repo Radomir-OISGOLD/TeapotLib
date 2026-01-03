@@ -9,9 +9,8 @@ namespace Teapot
 	struct Device;
 	struct Instance;
 	struct Image;
-	struct RenderPass;
 	struct Pipeline;
-	struct CommandBuffer;
+	struct RenderPass;
 	struct DispatchTable;
 	struct Framebuffer;
 
@@ -105,10 +104,11 @@ namespace Teapot
 
 	struct Pipeline
 	{
-		Pipeline(Swapchain& swapchain, Shader& sh_vert, Shader& shader_frag);
+		Pipeline(Swapchain& swapchain, Shader& sh_vert, Shader& sh_frag);
 		~Pipeline();
 
 		Device* p_device;
+		DispatchTable* p_table;
 
 		VkPipeline handle;
 		VkPipelineLayout* p_layout;
@@ -136,5 +136,5 @@ namespace Teapot
 	};
 
 
-	int drawFrame();
+	int drawFrame(size_t* p_frame, DispatchTable& table, Swapchain& chain, CommandPool& pool, Queue& graphics_queue, Queue& present_queue);
 }

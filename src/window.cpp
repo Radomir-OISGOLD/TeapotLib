@@ -9,12 +9,17 @@ namespace Teapot
 	Teapot::Window::Window(Instance& instance, const char* title, unsigned int w, unsigned int h) :
 		p_instance(&instance)
 	{
-
 		glfwInit();
 
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		handle = glfwCreateWindow(w, h, title, NULL, NULL);
 
+		handle = glfwCreateWindow(w, h, title, NULL, NULL);
+		if (!handle) {
+			err("Failed to create GLFW window.");
+			delete this;
+			return;
+		}
+		glfwMakeContextCurrent(handle);
 	}
 
 	Window::~Window()

@@ -13,15 +13,11 @@
 #include <cstdint>
 
 #include <vulkan/vulkan.hpp>
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <VkBootstrap.h>
 #include <vulkan/vk_enum_string_helper.h>
 
-/*
- * Concept of encapsulation got sacrificed
- * to save nerve system. Friends are good,
- * but in C++ they're just hell.
- */
 
 #define TEAPOT_DOUBLE_BUFFERING 2
 

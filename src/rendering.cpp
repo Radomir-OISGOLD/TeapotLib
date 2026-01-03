@@ -5,6 +5,7 @@
 #include "Teapot/image.hpp"
 #include <cstddef>
 #include <fstream>
+#include "Teapot/rendering.hpp"
 
 namespace Teapot
 {
@@ -244,7 +245,7 @@ namespace Teapot
 
 
 	// Very simple approach - expects just 2 main shaders (frag and vert)
-	Pipeline::Pipeline(Swapchain& swapchain, Shader& sh_vert, Shader& shader_frag)
+	Pipeline::Pipeline(Swapchain& swapchain, Shader& sh_vert, Shader& sh_frag)
 	{
 		VkPipelineShaderStageCreateInfo vert_stage_info = {};
 		vert_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -257,7 +258,7 @@ namespace Teapot
 		VkPipelineShaderStageCreateInfo frag_stage_info = {};
 		frag_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		frag_stage_info.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-		frag_stage_info.module = shader_frag.handle;
+		frag_stage_info.module = sh_frag.handle;
 		frag_stage_info.pName = "main";
 	
 		VkPipelineShaderStageCreateInfo shader_stages[] = { vert_stage_info, frag_stage_info };
@@ -357,9 +358,16 @@ namespace Teapot
 			err("Failed to create pipeline");
 		}
 		p_device = swapchain.p_device;
+		p_table = sh_vert.p_table;
 	}
 
-	Framebuffer::Framebuffer(DispatchTable& table, Swapchain& swapchain, RenderPass& render_pass) :
+    Pipeline::~Pipeline()
+    {
+		p_table->handle.destroyPipeline(handle, nullptr);
+		p_table->handle.destroyPipelineLayout(*p_layout, nullptr);
+    }
+
+    Framebuffer::Framebuffer(DispatchTable& table, Swapchain& swapchain, RenderPass& render_pass) :
 		p_table(&table)
 	{
 		//handles.resize(swapchain.swapchain_images.size());
@@ -433,8 +441,12 @@ namespace Teapot
 		}
 	}
 
-	void recreateSwapchain(DispatchTable& table)
-	{
+    RenderPass::~RenderPass()
+    {
+
+    }
+    void recreateSwapchain(DispatchTable &table)
+    {
 		table.handle.deviceWaitIdle();
 	
 		*table.p_device->p_swapchain = Swapchain(*table.p_device);
