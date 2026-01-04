@@ -13,7 +13,7 @@ namespace Teapot
 	struct PhysDevice
 	{
 
-		PhysDevice(Surface& surface);
+		PhysDevice(Instance& inst, Surface& surface);
 
 		vkb::PhysicalDevice handle;
 

@@ -17,6 +17,7 @@
 #include <GLFW/glfw3.h>
 #include <VkBootstrap.h>
 #include <vulkan/vk_enum_string_helper.h>
+#include <stb_image.h>
 
 
 #define TEAPOT_DOUBLE_BUFFERING 2

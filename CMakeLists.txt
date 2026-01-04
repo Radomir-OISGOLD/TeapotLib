@@ -21,7 +21,13 @@ find_package(Vulkan REQUIRED)
 file(GLOB_RECURSE PUBLIC_HEADERS "include/Teapot/*.hpp")
 add_library(TeapotLib STATIC ${PUBLIC_SOURCE} "${CMAKE_CURRENT_SOURCE_DIR}/deps/vkb/VkBootstrap.cpp")
 
-target_include_directories(TeapotLib PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/deps/vkb")
+target_include_directories(
+	TeapotLib 
+	PRIVATE 
+	"${CMAKE_CURRENT_SOURCE_DIR}/include" 
+	"${CMAKE_CURRENT_SOURCE_DIR}/deps/vkb"
+	"C:/_libraries/stb"
+)
 
 target_include_directories(
 	TeapotLib 

@@ -7,9 +7,9 @@
 
 namespace Teapot
 {
-	PhysDevice::PhysDevice(Surface& surface)
+	PhysDevice::PhysDevice(Instance& inst, Surface& surface)
 	{
-		vkb::PhysicalDeviceSelector selector{ p_instance->handle };
+		vkb::PhysicalDeviceSelector selector{ inst.handle };
 		auto phys_ret = selector.set_surface(surface.handle).select();
 		std::cout << "Available Vulkan Physical Devices:\n";
 		if (phys_ret) 

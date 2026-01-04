@@ -12,25 +12,25 @@ namespace Teapot
 
 	struct Init
 	{
-		Window* window;
-		Instance* instance;
-		vkb::InstanceDispatchTable inst_disp;
-		Surface* surface;
-		Device* device;
-		DispatchTable* disp;
-		Swapchain* swapchain;
+		Window* p_window;
+		Instance* p_instance;
+		vkb::InstanceDispatchTable p_inst_disp;
+		Surface* p_surface;
+		Device* p_device;
+		DispatchTable* p_disp;
+		Swapchain* p_swapchain;
 	};
 
 	struct RenderData
 	{
-		Queue* graphics_queue;
-		Queue* present_queue;
+		Queue* p_graphics_queue;
+		Queue* p_present_queue;
 
-		Swapchain* swapchain;
-		Framebuffer* framebuffers;
-		RenderPass* render_pass;
-		Pipeline* graphics_pipeline;
-		CommandPool* command_pool;
+		Swapchain* p_swapchain;
+		Framebuffer* p_framebuffers;
+		RenderPass* p_render_pass;
+		Pipeline* p_graphics_pipeline;
+		CommandPool* p_command_pool;
 
 		vec<VkCommandBuffer> command_buffers;
 

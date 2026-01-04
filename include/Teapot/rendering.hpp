@@ -58,6 +58,17 @@ namespace Teapot
 		vkb::DispatchTable handle;
 	};
 
+	struct InstanceDispatchTable
+	{
+		InstanceDispatchTable(Instance& instance);
+
+		~InstanceDispatchTable();
+
+		Instance* p_instance;
+
+		vkb::InstanceDispatchTable handle;
+	};
+
 
 	struct Shader
 	{
@@ -104,14 +115,14 @@ namespace Teapot
 
 	struct Pipeline
 	{
-		Pipeline(Swapchain& swapchain, Shader& sh_vert, Shader& sh_frag);
+		Pipeline(RenderPass& render_pass, Swapchain& swapchain, Shader& sh_vert, Shader& sh_frag);
 		~Pipeline();
 
 		Device* p_device;
 		DispatchTable* p_table;
 
 		VkPipeline handle;
-		VkPipelineLayout* p_layout;
+		VkPipelineLayout layout;
 		VkRenderPass* p_render_pass;
 
 		VkViewport viewport;

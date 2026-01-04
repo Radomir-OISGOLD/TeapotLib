@@ -3,6 +3,7 @@
 #include "Teapot/cap.hpp"
 #include "Teapot/device.hpp"
 #include "Teapot/image.hpp"
+#include "Teapot/instance.hpp"
 #include <cstddef>
 #include <fstream>
 #include "Teapot/rendering.hpp"
@@ -245,15 +246,16 @@ namespace Teapot
 
 
 	// Very simple approach - expects just 2 main shaders (frag and vert)
-	Pipeline::Pipeline(Swapchain& swapchain, Shader& sh_vert, Shader& sh_frag)
+	Pipeline::Pipeline(RenderPass& render_pass, Swapchain& swapchain, Shader& sh_vert, Shader& sh_frag) :
+		p_device(swapchain.p_device),
+		p_table(sh_vert.p_table),
+		p_render_pass(&render_pass.handle)
 	{
 		VkPipelineShaderStageCreateInfo vert_stage_info = {};
 		vert_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		vert_stage_info.stage = VK_SHADER_STAGE_VERTEX_BIT;
 		vert_stage_info.module = sh_vert.handle;
 		vert_stage_info.pName = "main";
-
-		int var = 0 + 3;
 	
 		VkPipelineShaderStageCreateInfo frag_stage_info = {};
 		frag_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -263,7 +265,6 @@ namespace Teapot
 	
 		VkPipelineShaderStageCreateInfo shader_stages[] = { vert_stage_info, frag_stage_info };
 
-		
 		VkPipelineVertexInputStateCreateInfo vertex_input_info = {};
     	vertex_input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     	vertex_input_info.vertexBindingDescriptionCount = 0;
@@ -327,44 +328,71 @@ namespace Teapot
 		pipeline_layout_info.setLayoutCount = 0;
 		pipeline_layout_info.pushConstantRangeCount = 0;
 
-		if (sh_vert.p_table->handle.createPipelineLayout(&pipeline_layout_info, nullptr, p_layout) != VK_SUCCESS) {
+		if (sh_vert.p_table->handle.createPipelineLayout(&pipeline_layout_info, nullptr, &layout) != VK_SUCCESS)
+		{
 			err("Failed to create pipeline layout");
 		}
 
+		printf("Pipeline layout created\n");
+
+		printf("p1\n");
 		vec<VkDynamicState> dynamic_states = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
 
+		printf("p2\n");
 		VkPipelineDynamicStateCreateInfo dynamic_info = {};
 		dynamic_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 		dynamic_info.dynamicStateCount = static_cast<uint32_t>(dynamic_states.size());
 		dynamic_info.pDynamicStates = dynamic_states.data();
+
+		printf("p3\n");
 	
 		VkGraphicsPipelineCreateInfo pipeline_info = {};
+		printf("deep 1\n");
 		pipeline_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+		printf("deep 2\n");
 		pipeline_info.stageCount = 2;
+		printf("deep 3\n");
 		pipeline_info.pStages = shader_stages;
+		printf("deep 4\n");
 		pipeline_info.pVertexInputState = &vertex_input_info;
+		printf("deep 5\n");
 		pipeline_info.pInputAssemblyState = &input_assembly;
+		printf("deep 6\n");
 		pipeline_info.pViewportState = &viewport_state;
+		printf("deep 7\n");
 		pipeline_info.pRasterizationState = &rasterizer;
+		printf("deep 8\n");
 		pipeline_info.pMultisampleState = &multisampling;
+		printf("deep 9\n");
 		pipeline_info.pColorBlendState = &color_blending;
+		printf("deep 10\n");
 		pipeline_info.pDynamicState = &dynamic_info;
-		pipeline_info.layout = *p_layout;
-		pipeline_info.renderPass = *p_render_pass;
+		printf("deep 11\n");
+		pipeline_info.layout = layout;
+		printf("deep 12\n");
+		pipeline_info.renderPass = *p_render_pass;//// here, forgot to init render pass
+		printf("deep 13\n");
 		pipeline_info.subpass = 0;
+		printf("deep 14\n");
 		pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
+		printf("deep 15\n");
 	
-		if (sh_vert.p_table->handle.createGraphicsPipelines(VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &handle) != VK_SUCCESS) {
+		printf("Creating pipeline...\n");
+
+		if (sh_vert.p_table->handle.createGraphicsPipelines(VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &handle) != VK_SUCCESS)
+		{
 			err("Failed to create pipeline");
 		}
+
 		p_device = swapchain.p_device;
 		p_table = sh_vert.p_table;
+		printf("Pipeline created\n");
 	}
 
     Pipeline::~Pipeline()
     {
 		p_table->handle.destroyPipeline(handle, nullptr);
-		p_table->handle.destroyPipelineLayout(*p_layout, nullptr);
+		p_table->handle.destroyPipelineLayout(layout, nullptr);
     }
 
     Framebuffer::Framebuffer(DispatchTable& table, Swapchain& swapchain, RenderPass& render_pass) :
@@ -529,3 +557,12 @@ namespace Teapot
 
 }
 
+Teapot::InstanceDispatchTable::InstanceDispatchTable(Instance& instance)
+{
+	handle = instance.handle.make_table();
+	p_instance = &instance;
+}
+
+Teapot::InstanceDispatchTable::~InstanceDispatchTable()
+{
+}

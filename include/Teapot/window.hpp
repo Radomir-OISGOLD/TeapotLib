@@ -10,7 +10,7 @@ namespace Teapot
 
 	struct Window
 	{
-		Window(Instance& instance, const char* title, unsigned int w, unsigned int h);
+		Window(const char* title, unsigned int w, unsigned int h);
 
 		~Window();
 
@@ -18,18 +18,18 @@ namespace Teapot
 
 		Surface* p_surface;
 
-		Instance* p_instance;
 	};
 
 	struct Surface
 	{
-		Surface(Window& window);
+		Surface(Window& window, Instance& instance);
 		
 		~Surface();
 
 		VkSurfaceKHR handle;
 
 		Window* p_window;
+		Instance* p_instance;
 	};
 	
 

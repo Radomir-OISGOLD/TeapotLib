@@ -12,7 +12,7 @@
 namespace Teapot
 {
 
-    void inline oneFuncTest()
+    void inline oneFuncTest(const char* vert_path, const char* frag_path)
     {
         const char* app_name = "Vulkan Teapot App";
         const char* window_title = "Vulkan Teapot Window";
@@ -45,9 +45,46 @@ namespace Teapot
         layout (location = 0) out vec4 outColor;
 
         void main () { outColor = vec4 (fragColor, 1.0); }
-        )";
+        )"; // Incorrect. They must be pre-compiled SPIR-V binaries.
+            // Either find a way to compile at runtime or provide pre-compiled binaries.
+       
 
+        Window window(window_title, w, h);      // 1
+        printf("1\n");
+        Instance inst(app_name);                // 2
+        printf("2\n");
+        InstanceDispatchTable inst_table(inst); // 3
+        printf("3\n");
+        Surface surf(window, inst);             // 4
+        printf("4\n");
+        PhysDevice phys(inst, surf);            // 5
+        printf("5\n");
+        Device dev(phys);                       // 6
+        printf("6\n");
+        DispatchTable table(dev);               // 7
+        printf("7\n");
+        
+        Shader sh_vert(table, vert_path);
+        Shader sh_frag(table, frag_path);
 
+        Swapchain swapchain(dev);                         // 8
+        printf("8\n");
+        Queue qu_graphics(dev, vkb::QueueType::graphics); // 9
+        printf("9\n");
+        Queue qu_present(dev, vkb::QueueType::present);   // 10
+        printf("10\n");
+        RenderPass rpass(swapchain, table);               // 11
+        printf("11\n");
+        Pipeline pipeline(rpass, swapchain, sh_vert, sh_frag);   // 12
+        printf("12\n");
+        Framebuffer fbuf(table, swapchain, rpass);        // 12.5
+        printf("12.5\n");
+        CommandPool pool(table, vkb::QueueType::graphics);// 13
+        printf("13\n");
+        pool.allocBuffers(pipeline);                      // 14
+        printf("14\n");
+
+        // Order matters
         vec<VkImage> swapchain_images;
         vec<VkImageView> swapchain_image_views;
     
@@ -57,32 +94,9 @@ namespace Teapot
         vec<VkFence> image_in_flight;
 
         size_t current_frame = 0;
-
-        Instance inst(app_name);
-        
-        Window window(inst, window_title, w, h);
-        Surface surf(window);
-
-        PhysDevice phys(surf);
-        Device dev(phys);
-
-        DispatchTable table(dev);
-
-        Shader sh_vert(table, inline_vert);
-        Shader sh_frag(table, inline_frag);
-
-        Swapchain swapchain(dev);
-        RenderPass rpass(swapchain, table);
-        Framebuffer fbuf(table, swapchain, rpass);
-
-        Queue qu_graphics(dev, vkb::QueueType::graphics);
-        Queue qu_present(dev, vkb::QueueType::present);
-        // Queues must be created before creating pools, this must be prohibited implicitly. TODO
-        CommandPool pool(table, vkb::QueueType::graphics);
-
-        Pipeline pipeline(swapchain, sh_vert, sh_frag);
-
+    
         swapchain.initSemaphores(table);
+        printf("Semaphores initialized\n");
         
         while (!glfwWindowShouldClose(window.handle))
         {
@@ -93,6 +107,7 @@ namespace Teapot
                 err("Failed to draw frame.");
             }
         }
+        printf("Exited main loop\n");
 
         table.handle.deviceWaitIdle();
 
