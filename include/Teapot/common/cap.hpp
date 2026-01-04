@@ -10,6 +10,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <array>
 #include <cstdint>
 
 #include <vulkan/vulkan.hpp>
@@ -17,14 +18,39 @@
 #include <GLFW/glfw3.h>
 #include <VkBootstrap.h>
 #include <vulkan/vk_enum_string_helper.h>
-#include <stb_image.h>
 
 
 #define TEAPOT_DOUBLE_BUFFERING 2
 
 namespace Teapot
 {
+	// Forward declarations
+	// common
+	struct Init;
+	struct RenderData;
 
+	// core
+	struct Device;
+	struct PhysDevice;
+	struct Instance;
+	struct Queue;
+	struct Swapchain;
+	struct DispatchTable;
+	struct InstanceDispatchTable;
+	struct Image;
+	struct Texture;
+	struct LoadedImage;
+
+	// pipeline
+	struct Shader;
+	struct CommandPool;
+	struct Pipeline;
+	struct RenderPass;
+	struct Framebuffer;
+	
+	// platform
+	struct Window;
+	struct Surface;
 
 	template <typename T>
 	using vec = std::vector<T>;
@@ -35,12 +61,6 @@ namespace Teapot
 	template <typename T, typename L>
 	using map = std::map<T, L>;
 
-	template <typename T>
-	using sptr = std::shared_ptr<T>;
-
-	template <typename T>
-	using uptr = std::unique_ptr<T>;
-
 	using str = std::string;
 	using u16t = uint16_t;
 	using u32t = uint32_t;
@@ -49,7 +69,7 @@ namespace Teapot
 
 	void inline err(std::string message)
 	{
-		throw std::exception(&message[0]);
+		throw std::runtime_error(message);
 	}
 
 	void inline isVkOk(VkResult res, std::string message)

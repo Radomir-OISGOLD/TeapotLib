@@ -5,8 +5,13 @@ project("TeapotLib" VERSION 0.1.0.5 LANGUAGES "CXX")
 
 set(MSVC_PATH "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe")
 
-configure_file("${CMAKE_SOURCE_DIR}/version.cmake.in" "${CMAKE_SOURCE_DIR}/include/Teapot/version.hpp")
-file(GLOB_RECURSE PUBLIC_SOURCE "src/*.cpp")
+configure_file("${CMAKE_SOURCE_DIR}/version.cmake.in" "${CMAKE_SOURCE_DIR}/include/Teapot/common/version.hpp")
+file(GLOB_RECURSE PUBLIC_SOURCE 
+	"src/core/*.cpp"
+	"src/platform/*.cpp"
+	"src/common/*.cpp"
+	"src/pipeline/*.cpp"
+)
 
 set(LIB_DIR "C:/_libraries")
 
@@ -18,7 +23,12 @@ set(glfw3_DIR "C:/_libraries/GLFW/lib/cmake/glfw3")
 find_package(glfw3 REQUIRED)
 find_package(Vulkan REQUIRED)
 
-file(GLOB_RECURSE PUBLIC_HEADERS "include/Teapot/*.hpp")
+file(GLOB_RECURSE PUBLIC_HEADERS 
+	"include/Teapot/core/*.hpp"
+	"include/Teapot/platform/*.hpp"
+	"include/Teapot/common/*.hpp"
+	"include/Teapot/pipeline/*.hpp"
+)
 add_library(TeapotLib STATIC ${PUBLIC_SOURCE} "${CMAKE_CURRENT_SOURCE_DIR}/deps/vkb/VkBootstrap.cpp")
 
 target_include_directories(
@@ -26,7 +36,7 @@ target_include_directories(
 	PRIVATE 
 	"${CMAKE_CURRENT_SOURCE_DIR}/include" 
 	"${CMAKE_CURRENT_SOURCE_DIR}/deps/vkb"
-	"C:/_libraries/stb"
+	"${CMAKE_CURRENT_SOURCE_DIR}/external_includes"
 )
 
 target_include_directories(
