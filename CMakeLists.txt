@@ -4,11 +4,12 @@ set (CMAKE_CXX_STANDARD 20)
 project("TeapotLib" VERSION 0.1.0.5 LANGUAGES "CXX")
 
 configure_file("${CMAKE_SOURCE_DIR}/version.cmake.in" "${CMAKE_SOURCE_DIR}/include/Teapot/common/version.hpp")
-file(GLOB_RECURSE PUBLIC_SOURCE 
+file(GLOB_RECURSE PUBLIC_SOURCE
 	"src/core/*.cpp"
 	"src/platform/*.cpp"
 	"src/common/*.cpp"
 	"src/pipeline/*.cpp"
+	"src/ui/*.cpp"
 )
 
 set(LIB_DIR "C:/.libraries")
@@ -18,11 +19,12 @@ set(glfw3_DIR "${LIB_DIR}/GLFW/lib/cmake/glfw3/")
 find_package(glfw3 REQUIRED)
 find_package(Vulkan REQUIRED)
 
-file(GLOB_RECURSE PUBLIC_HEADERS 
+file(GLOB_RECURSE PUBLIC_HEADERS
 	"include/Teapot/core/*.hpp"
 	"include/Teapot/platform/*.hpp"
 	"include/Teapot/common/*.hpp"
 	"include/Teapot/pipeline/*.hpp"
+	"include/Teapot/ui/*.hpp"
 )
 add_library(TeapotLib STATIC ${PUBLIC_SOURCE} "${CMAKE_CURRENT_SOURCE_DIR}/deps/vkb/VkBootstrap.cpp")
 

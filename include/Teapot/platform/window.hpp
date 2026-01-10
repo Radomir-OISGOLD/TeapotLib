@@ -35,9 +35,30 @@ namespace Teapot
 		Window& operator=(Window&&) = default;
 
 		void createSurface(Instance& instance);
+		void initInput();
+
+		// Button management API
+		Button* newButton(
+			const vec2& bottom_left,
+			const vec2& top_right,
+			ButtonTextures textures,
+			std::function<void()> callback
+		);
+
+		void updateButtons();
+
+		unsigned int getWidth() const { return width; }
+		unsigned int getHeight() const { return height; }
+		const vec<std::unique_ptr<Button>>& getButtons() const { return buttons; }
 
 		GLFWwindow* handle = nullptr;
 		std::unique_ptr<Surface> surface;
+		std::unique_ptr<InputManager> input;
+
+	private:
+		unsigned int width = 0;
+		unsigned int height = 0;
+		vec<std::unique_ptr<Button>> buttons;
 	};
 }
 

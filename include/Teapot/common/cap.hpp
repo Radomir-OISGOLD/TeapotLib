@@ -12,6 +12,7 @@
 #include <map>
 #include <array>
 #include <cstdint>
+#include <functional>
 
 #include <vulkan/vulkan.hpp>
 #define GLFW_INCLUDE_VULKAN
@@ -47,10 +48,25 @@ namespace Teapot
 	struct Pipeline;
 	struct RenderPass;
 	struct Framebuffer;
-	
+	struct DescriptorSetLayout;
+	struct DescriptorPool;
+	struct DescriptorSet;
+
 	// platform
 	struct Window;
 	struct Surface;
+	class InputManager;
+	struct MouseState;
+
+	// ui
+	struct vec2;
+	enum class ButtonState;
+	struct ButtonTextures;
+	class Button;
+	struct UIVertex;
+	class Projection;
+	struct UIQuad;
+	class UIRenderer;
 
 	template <typename T>
 	using vec = std::vector<T>;
