@@ -1,5 +1,6 @@
 #include "Teapot/pipeline/shader.hpp"
 #include "Teapot/core/device.hpp"
+#include "Teapot/core/dispatch.hpp"
 
 #include <fstream>
 #include <vector>
@@ -37,13 +38,13 @@ namespace Teapot
     	create_info.codeSize = code.size();
     	create_info.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
-    	isVkOk(p_device->table->createShaderModule(&create_info, nullptr, &handle), "Failed to create shader module");
+    	isVkOk(p_device->table->handle.createShaderModule(&create_info, nullptr, &handle), "Failed to create shader module");
 	}
 
 	Shader::~Shader()
 	{
 		if (handle != VK_NULL_HANDLE && p_device != nullptr) {
-			p_device->table->destroyShaderModule(handle, nullptr);
+			p_device->table->handle.destroyShaderModule(handle, nullptr);
 		}
 	}
 }

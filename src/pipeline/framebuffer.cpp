@@ -3,6 +3,7 @@
 #include "Teapot/core/image.hpp"
 #include "Teapot/pipeline/renderpass.hpp"
 #include "Teapot/core/swapchain.hpp"
+#include "Teapot/core/dispatch.hpp"
 
 namespace Teapot
 {
@@ -20,13 +21,13 @@ namespace Teapot
 		framebuffer_info.height = device.swapchain->handle.extent.height;
 		framebuffer_info.layers = 1;
 
-		isVkOk(p_device->table->createFramebuffer(&framebuffer_info, nullptr, &handle), "Failed to create framebuffer");
+		isVkOk(p_device->table->handle.createFramebuffer(&framebuffer_info, nullptr, &handle), "Failed to create framebuffer");
 	}
 
 	Framebuffer::~Framebuffer()
 	{
 		if (handle != VK_NULL_HANDLE && p_device != nullptr) {
-			p_device->table->destroyFramebuffer(handle, nullptr);
+			p_device->table->handle.destroyFramebuffer(handle, nullptr);
 		}
 	}
 }

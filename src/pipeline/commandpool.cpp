@@ -1,5 +1,6 @@
 #include "Teapot/pipeline/commandpool.hpp"
 #include "Teapot/core/device.hpp"
+#include "Teapot/core/dispatch.hpp"
 
 namespace Teapot
 {
@@ -16,14 +17,14 @@ namespace Teapot
     	pool_info.queueFamilyIndex = queue_index_ret.value();
 		pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT; // Allow resetting individual command buffers
 
-    	isVkOk(p_device->table->createCommandPool(&pool_info, nullptr, &handle), "Failed to create command pool");
+    	isVkOk(p_device->table->handle.createCommandPool(&pool_info, nullptr, &handle), "Failed to create command pool");
 	}
 
 	CommandPool::~CommandPool()
 	{
 		if (handle != VK_NULL_HANDLE && p_device != nullptr) {
 			// Command buffers are implicitly freed with the pool
-			p_device->table->destroyCommandPool(handle, nullptr);
+			p_device->table->handle.destroyCommandPool(handle, nullptr);
 		}
 	}
 	

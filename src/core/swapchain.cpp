@@ -1,6 +1,7 @@
 #include "Teapot/core/swapchain.hpp"
 #include "Teapot/core/device.hpp"
 #include "Teapot/core/image.hpp"
+#include "Teapot/core/dispatch.hpp"
 
 namespace Teapot
 {
@@ -22,14 +23,17 @@ namespace Teapot
 	{
 		if (p_device == nullptr) return;
 
-		for (auto semaphore : available_semaphores) {
-			p_device->table->destroySemaphore(semaphore, nullptr);
+		for (auto semaphore : available_semaphores)
+		{
+			p_device->table->handle.destroySemaphore(semaphore, nullptr);
 		}
-		for (auto semaphore : finished_semaphores) {
-			p_device->table->destroySemaphore(semaphore, nullptr);
+		for (auto semaphore : finished_semaphores)
+		{
+			p_device->table->handle.destroySemaphore(semaphore, nullptr);
 		}
-		for (auto fence : in_flight_fences) {
-			p_device->table->destroyFence(fence, nullptr);
+		for (auto fence : in_flight_fences)
+		{
+			p_device->table->handle.destroyFence(fence, nullptr);
 		}
 
 		// Images' destructors will be called automatically
@@ -64,9 +68,9 @@ namespace Teapot
 		fence_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
 		for (size_t i = 0; i < TEAPOT_DOUBLE_BUFFERING; i++) {
-			isVkOk(p_device->table->createSemaphore(&semaphore_info, nullptr, &available_semaphores[i]), "Failed to create available_semaphores");
-			isVkOk(p_device->table->createSemaphore(&semaphore_info, nullptr, &finished_semaphores[i]), "Failed to create finished_semaphores");
-			isVkOk(p_device->table->createFence(&fence_info, nullptr, &in_flight_fences[i]), "Failed to create in_flight_fences");
+			isVkOk(p_device->table->handle.createSemaphore(&semaphore_info, nullptr, &available_semaphores[i]), "Failed to create available_semaphores");
+			isVkOk(p_device->table->handle.createSemaphore(&semaphore_info, nullptr, &finished_semaphores[i]), "Failed to create finished_semaphores");
+			isVkOk(p_device->table->handle.createFence(&fence_info, nullptr, &in_flight_fences[i]), "Failed to create in_flight_fences");
 		}
 	}
 }

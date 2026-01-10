@@ -80,6 +80,14 @@ namespace Teapot
 			err("Vulkan function thrown an error.");
 		}
 	}
+	void inline isVkOk(vk::Result res, std::string message)
+	{
+		if (res != vk::Result::eSuccess)
+		{
+			std::cout << message << " VkResult code." << "\n";
+			err("Vulkan function thrown an error.");
+		}
+	}
 
 } // namespace Teapot
 

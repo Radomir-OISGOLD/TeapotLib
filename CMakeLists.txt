@@ -3,8 +3,6 @@ cmake_minimum_required (VERSION 4.0)
 set (CMAKE_CXX_STANDARD 20)
 project("TeapotLib" VERSION 0.1.0.5 LANGUAGES "CXX")
 
-set(MSVC_PATH "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe")
-
 configure_file("${CMAKE_SOURCE_DIR}/version.cmake.in" "${CMAKE_SOURCE_DIR}/include/Teapot/common/version.hpp")
 file(GLOB_RECURSE PUBLIC_SOURCE 
 	"src/core/*.cpp"
@@ -13,13 +11,10 @@ file(GLOB_RECURSE PUBLIC_SOURCE
 	"src/pipeline/*.cpp"
 )
 
-set(LIB_DIR "C:/_libraries")
-
-message(STATUS "VULKAN_SDK env: $ENV{VULKAN_SDK}")
-message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
+set(LIB_DIR "C:/.libraries")
 
 # Find packages before creating target
-set(glfw3_DIR "C:/_libraries/GLFW/lib/cmake/glfw3")
+set(glfw3_DIR "${LIB_DIR}/GLFW/lib/cmake/glfw3/")
 find_package(glfw3 REQUIRED)
 find_package(Vulkan REQUIRED)
 
@@ -36,7 +31,7 @@ target_include_directories(
 	PRIVATE 
 	"${CMAKE_CURRENT_SOURCE_DIR}/include" 
 	"${CMAKE_CURRENT_SOURCE_DIR}/deps/vkb"
-	"${CMAKE_CURRENT_SOURCE_DIR}/external_includes"
+	"${CMAKE_CURRENT_SOURCE_DIR}/deps/external_includes"
 )
 
 target_include_directories(
@@ -60,7 +55,7 @@ target_link_libraries(
 	PRIVATE
 
 	Vulkan::Vulkan
-	glfw
+	glfw3
 )
 
 target_include_directories(

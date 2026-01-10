@@ -3,6 +3,7 @@
 #include "Teapot/pipeline/renderpass.hpp"
 #include "Teapot/core/swapchain.hpp"
 #include "Teapot/pipeline/shader.hpp"
+#include "Teapot/core/dispatch.hpp"
 
 namespace Teapot
 {
@@ -88,7 +89,7 @@ namespace Teapot
 		pipeline_layout_info.setLayoutCount = 0;
 		pipeline_layout_info.pushConstantRangeCount = 0;
 
-		isVkOk(p_device->table->createPipelineLayout(&pipeline_layout_info, nullptr, &layout), "Failed to create pipeline layout");
+		isVkOk(p_device->table->handle.createPipelineLayout(&pipeline_layout_info, nullptr, &layout), "Failed to create pipeline layout");
 
 		vec<VkDynamicState> dynamic_states = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
 
@@ -113,17 +114,17 @@ namespace Teapot
 		pipeline_info.subpass = 0;
 		pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
 	
-		isVkOk(p_device->table->createGraphicsPipelines(VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &handle), "Failed to create graphics pipeline");
+		isVkOk(p_device->table->handle.createGraphicsPipelines(VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &handle), "Failed to create graphics pipeline");
 	}
 
 	Pipeline::~Pipeline()
 	{
 		if (p_device == nullptr) return;
 		if (handle != VK_NULL_HANDLE) {
-			p_device->table->destroyPipeline(handle, nullptr);
+			p_device->table->handle.destroyPipeline(handle, nullptr);
 		}
 		if (layout != VK_NULL_HANDLE) {
-			p_device->table->destroyPipelineLayout(layout, nullptr);
+			p_device->table->handle.destroyPipelineLayout(layout, nullptr);
 		}
 	}
 }

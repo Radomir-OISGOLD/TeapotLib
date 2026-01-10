@@ -1,6 +1,7 @@
 #include "Teapot/pipeline/renderpass.hpp"
 #include "Teapot/core/device.hpp"
 #include "Teapot/core/swapchain.hpp"
+#include "Teapot/core/dispatch.hpp"
 
 namespace Teapot
 {
@@ -43,13 +44,13 @@ namespace Teapot
 		render_pass_info.dependencyCount = 1;
 		render_pass_info.pDependencies = &dependency;
 	
-		isVkOk(p_device->table->createRenderPass(&render_pass_info, nullptr, &handle), "Failed to create render pass.");
+		isVkOk(p_device->table->handle.createRenderPass(&render_pass_info, nullptr, &handle), "Failed to create render pass.");
 	}
 
 	RenderPass::~RenderPass()
 	{
 		if (handle != VK_NULL_HANDLE && p_device != nullptr) {
-			p_device->table->destroyRenderPass(handle, nullptr);
+			p_device->table->handle.destroyRenderPass(handle, nullptr);
 		}
 	}
 }

@@ -1,3 +1,0 @@
-
-#include "Teapot/structures.hpp"
-

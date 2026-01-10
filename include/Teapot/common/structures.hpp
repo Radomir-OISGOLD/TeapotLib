@@ -1,11 +1,16 @@
 
 #pragma once
 
-#include "Teapot/cap.hpp"
-#include "Teapot/window.hpp"
-#include "Teapot/instance.hpp"
-#include "Teapot/device.hpp"
-#include "Teapot/rendering.hpp"
+#include "Teapot/common/cap.hpp"
+#include "Teapot/platform/window.hpp"
+#include "Teapot/core/instance.hpp"
+#include "Teapot/core/device.hpp"
+#include "Teapot/core/swapchain.hpp"
+#include "Teapot/core/queue.hpp"
+#include "Teapot/pipeline/commandpool.hpp"
+#include "Teapot/pipeline/framebuffer.hpp"
+#include "Teapot/pipeline/renderpass.hpp"
+
 
 namespace Teapot
 {
