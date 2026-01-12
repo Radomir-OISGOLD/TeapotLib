@@ -7,7 +7,7 @@ namespace Teapot
 {
 	struct Surface
 	{
-		Surface(Window& window, Instance& instance);
+		Surface(Init* init);
 		~Surface();
 
 		// Non-copyable/movable
@@ -34,8 +34,8 @@ namespace Teapot
 		Window(Window&&) = default;
 		Window& operator=(Window&&) = default;
 
-		void createSurface(Instance& instance);
-		void initInput();
+		void createSurface(Init* init);
+		void initInput(Init* init);
 
 		// Button management API
 		Button* newButton(

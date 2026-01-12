@@ -7,7 +7,7 @@ namespace Teapot
 {
 	struct Device
 	{
-		Device(PhysDevice& phys);
+		Device(Init* init);
 		~Device();
 		
 		// Movable but not copyable
@@ -27,7 +27,7 @@ namespace Teapot
 
 	struct PhysDevice
 	{
-		PhysDevice(Instance& inst, Surface& surface);
+		PhysDevice(Init* init);
 		~PhysDevice() = default; 
 
 		// Movable but not copyable
@@ -36,7 +36,7 @@ namespace Teapot
 		PhysDevice(PhysDevice&&) = default;
 		PhysDevice& operator=(PhysDevice&&) = default;
 
-		std::unique_ptr<Device> createLogicalDevice();
+		std::unique_ptr<Device> createLogicalDevice(Init* init);
 
 		vkb::PhysicalDevice handle;
 

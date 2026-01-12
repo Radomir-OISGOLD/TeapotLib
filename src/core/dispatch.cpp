@@ -1,16 +1,17 @@
 #include "Teapot/core/dispatch.hpp"
 #include "Teapot/core/device.hpp"
 #include "Teapot/core/instance.hpp"
+#include "Teapot/common/structures.hpp"
 
 namespace Teapot
 {
-	DispatchTable::DispatchTable(Device& device)
+	DispatchTable::DispatchTable(Init* init)
 	{
-		handle = device.handle.make_table();
+		handle = init->p_device->handle.make_table();
 	}
 
-	InstanceDispatchTable::InstanceDispatchTable(Instance& instance)
+	InstanceDispatchTable::InstanceDispatchTable(Init* init)
 	{
-		handle = instance.handle.make_table();
+		handle = init->p_instance->handle.make_table();
 	}
 }

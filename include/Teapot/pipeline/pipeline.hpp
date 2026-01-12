@@ -8,13 +8,11 @@ namespace Teapot
 	{
 	public:
 		// Original constructor for basic pipelines
-		Pipeline(Device& device, RenderPass& render_pass, Swapchain& swapchain, Shader& sh_vert, Shader& sh_frag);
+		Pipeline(RenderData* render_data, Shader& sh_vert, Shader& sh_frag);
 
 		// UI pipeline constructor with descriptor sets and vertex input
 		Pipeline(
-			Device& device,
-			RenderPass& render_pass,
-			Swapchain& swapchain,
+			RenderData* render_data,
 			Shader& sh_vert,
 			Shader& sh_frag,
 			DescriptorSetLayout* desc_layout,  // Optional descriptor set layout

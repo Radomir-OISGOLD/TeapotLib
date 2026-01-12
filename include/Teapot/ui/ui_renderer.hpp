@@ -16,7 +16,7 @@ namespace Teapot
 	class UIRenderer
 	{
 	public:
-		UIRenderer(Device& device, RenderPass& render_pass, Swapchain& swapchain);
+		UIRenderer(RenderData* render_data);
 		~UIRenderer();
 
 		// Non-copyable and non-movable
@@ -40,6 +40,7 @@ namespace Teapot
 		void recordCommands(VkCommandBuffer cmd_buffer, uint32_t window_width, uint32_t window_height);
 
 	private:
+		RenderData* p_render_data = nullptr;
 		Device* p_device = nullptr;
 		RenderPass* p_render_pass = nullptr;
 		Swapchain* p_swapchain = nullptr;

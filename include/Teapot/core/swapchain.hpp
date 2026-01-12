@@ -6,7 +6,7 @@ namespace Teapot
 {
 	struct Swapchain
 	{
-		Swapchain(Device& device);
+		Swapchain(Init* init);
 		~Swapchain();
 
 		// Movable but not copyable
@@ -17,7 +17,8 @@ namespace Teapot
 
 		vkb::Swapchain handle;
 		vec<Image> images;
-		
+
+		Init* p_init = nullptr; // Non-owning
 		Device* p_device = nullptr; // Non-owning
 
 		// Sync structures

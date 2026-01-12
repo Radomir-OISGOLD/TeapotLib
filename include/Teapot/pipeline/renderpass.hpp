@@ -6,7 +6,7 @@ namespace Teapot
 {
 	struct RenderPass
 	{
-		RenderPass(Device& device, Swapchain& swapchain);
+		RenderPass(Init* init);
 		~RenderPass();
 
 		// Movable but not copyable

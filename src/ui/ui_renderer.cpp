@@ -9,13 +9,15 @@
 #include "Teapot/pipeline/pipeline.hpp"
 #include "Teapot/pipeline/descriptors.hpp"
 #include "Teapot/platform/window.hpp"
+#include "Teapot/common/structures.hpp"
 
 namespace Teapot
 {
-	UIRenderer::UIRenderer(Device& device, RenderPass& render_pass, Swapchain& swapchain)
-		: p_device(&device)
-		, p_render_pass(&render_pass)
-		, p_swapchain(&swapchain)
+	UIRenderer::UIRenderer(RenderData* render_data)
+		: p_render_data(render_data)
+		, p_device(render_data->p_device)
+		, p_render_pass(render_data->p_render_pass)
+		, p_swapchain(render_data->p_swapchain)
 	{
 	}
 
@@ -44,11 +46,8 @@ namespace Teapot
 	void UIRenderer::createPipeline(Shader& vert, Shader& frag, DescriptorSetLayout& desc_layout)
 	{
 		// Create pipeline with vertex input and descriptor set support
-		// We'll need to read the pipeline header to see the constructor signature
 		pipeline = std::make_unique<Pipeline>(
-			*p_device,
-			*p_render_pass,
-			*p_swapchain,
+			p_render_data,
 			vert,
 			frag,
 			&desc_layout,  // Enable descriptor sets
@@ -119,7 +118,14 @@ namespace Teapot
 			if (!tex) continue;
 
 			// Create descriptor set for this button's texture
-			DescriptorSet desc_set(*p_device, desc_pool, desc_layout, *tex);
+			// Note: This creates a temporary RenderData-like structure for the descriptor set
+			// In practice, you'd want to pass the actual RenderData* to this method
+			// For now, keeping the old signature for desc_pool and desc_layout parameters
+			RenderData temp_render_data;
+			temp_render_data.p_device = p_device;
+			temp_render_data.p_descriptor_pool = &desc_pool;
+			temp_render_data.p_descriptor_set_layout = &desc_layout;
+			DescriptorSet desc_set(&temp_render_data, *tex);
 
 			// Create quad vertices in pixel space
 			const auto& bl = button->getBottomLeft();

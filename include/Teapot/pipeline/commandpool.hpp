@@ -6,7 +6,7 @@ namespace Teapot
 {
 	struct CommandPool
 	{
-		CommandPool(Device& device, vkb::QueueType queue_type);
+		CommandPool(Init* init, vkb::QueueType queue_type);
 		~CommandPool();
 
 		// Movable but not copyable

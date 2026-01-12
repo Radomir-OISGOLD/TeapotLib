@@ -2,13 +2,14 @@
 #include "Teapot/core/device.hpp"
 #include "Teapot/core/image.hpp"
 #include "Teapot/core/dispatch.hpp"
+#include "Teapot/common/structures.hpp"
 
 namespace Teapot
 {
-	Swapchain::Swapchain(Device& device)
-		: p_device(&device)
+	Swapchain::Swapchain(Init* init)
+		: p_init(init), p_device(init->p_device)
 	{
-		vkb::SwapchainBuilder swapchain_builder{ device.handle };
+		vkb::SwapchainBuilder swapchain_builder{ init->p_device->handle };
 		auto swap_ret = swapchain_builder.build();
 		if (!swap_ret) {
 			err("Failed to create swapchain: " + swap_ret.error().message());
@@ -50,7 +51,7 @@ namespace Teapot
 		
 		images.reserve(vk_images.size());
 		for (auto& image : vk_images) {
-			images.emplace_back(*p_device, image, handle.image_format);
+			images.emplace_back(p_init, image, handle.image_format);
 		}
 	}
 

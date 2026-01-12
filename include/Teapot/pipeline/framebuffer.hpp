@@ -6,7 +6,7 @@ namespace Teapot
 {
 	struct Framebuffer
 	{
-		Framebuffer(Device& device, RenderPass& render_pass, Image& image);
+		Framebuffer(RenderData* render_data, Image& image);
 		~Framebuffer();
 
 		// Movable but not copyable

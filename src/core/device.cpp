@@ -4,17 +4,18 @@
 #include "Teapot/platform/window.hpp"
 #include "Teapot/core/dispatch.hpp"
 #include "Teapot/core/swapchain.hpp"
+#include "Teapot/common/structures.hpp"
 
 #include <iostream>
 
 namespace Teapot
 {
 	// --- PhysDevice ---
-	PhysDevice::PhysDevice(Instance& inst, Surface& surface)
-		: p_instance(&inst)
+	PhysDevice::PhysDevice(Init* init)
+		: p_instance(init->p_instance)
 	{
-		vkb::PhysicalDeviceSelector selector{ inst.handle };
-		auto phys_ret = selector.set_surface(surface.handle)
+		vkb::PhysicalDeviceSelector selector{ init->p_instance->handle };
+		auto phys_ret = selector.set_surface(init->p_surface->handle)
 			.set_minimum_version(1, 1) // Sensible default
 			.select();
 
@@ -25,17 +26,17 @@ namespace Teapot
 		std::cout << "Selected Vulkan Physical Device: " << handle.name << "\n";
 	}
 
-	std::unique_ptr<Device> PhysDevice::createLogicalDevice()
+	std::unique_ptr<Device> PhysDevice::createLogicalDevice(Init* init)
 	{
-		return std::make_unique<Device>(*this);
+		return std::make_unique<Device>(init);
 	}
 
 
 	// --- Device ---
-	Device::Device(PhysDevice& phys)
-		: p_phys_device(&phys)
+	Device::Device(Init* init)
+		: p_phys_device(init->p_phys_device)
 	{
-		vkb::DeviceBuilder device_builder{ phys.handle };
+		vkb::DeviceBuilder device_builder{ init->p_phys_device->handle };
 
 		auto dev_ret = device_builder.build();
 		if (!dev_ret) {
@@ -43,7 +44,8 @@ namespace Teapot
 		}
 		handle = dev_ret.value();
 
-		table = std::make_unique<DispatchTable>(*this);
+		// Update init->p_device before creating dispatch table
+		table = std::make_unique<DispatchTable>(init);
 	}
 
 	Device::~Device()

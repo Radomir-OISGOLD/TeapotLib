@@ -6,7 +6,7 @@ namespace Teapot
 {
 	struct Shader
 	{
-		Shader(Device& device, const char* file_path);
+		Shader(Init* init, const char* file_path);
 		~Shader();
 
 		VkShaderModule handle;

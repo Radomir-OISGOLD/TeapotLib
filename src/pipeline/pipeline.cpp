@@ -6,11 +6,12 @@
 #include "Teapot/core/swapchain.hpp"
 #include "Teapot/pipeline/shader.hpp"
 #include "Teapot/core/dispatch.hpp"
+#include "Teapot/common/structures.hpp"
 
 namespace Teapot
 {
-	Pipeline::Pipeline(Device& device, RenderPass& render_pass, Swapchain& swapchain, Shader& sh_vert, Shader& sh_frag)
-		: p_device(&device)
+	Pipeline::Pipeline(RenderData* render_data, Shader& sh_vert, Shader& sh_frag)
+		: p_device(render_data->p_device)
 	{
 		VkPipelineShaderStageCreateInfo vert_stage_info = {};
 		vert_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -37,16 +38,16 @@ namespace Teapot
     	input_assembly.primitiveRestartEnable = VK_FALSE;
 
 		VkViewport viewport = {};
-    	viewport.x = 0.0f;
-    	viewport.y = 0.0f;
-    	viewport.width = (float)swapchain.handle.extent.width;
-    	viewport.height = (float)swapchain.handle.extent.height;
-    	viewport.minDepth = 0.0f;
-    	viewport.maxDepth = 1.0f;
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = (float)render_data->p_swapchain->handle.extent.width;
+		viewport.height = (float)render_data->p_swapchain->handle.extent.height;
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
 
 		VkRect2D scissor = {};
-    	scissor.offset = { 0, 0 };
-    	scissor.extent = swapchain.handle.extent;
+		scissor.offset = { 0, 0 };
+		scissor.extent = render_data->p_swapchain->handle.extent;
 
 		VkPipelineViewportStateCreateInfo viewport_state = {};
     	viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -112,22 +113,20 @@ namespace Teapot
 		pipeline_info.pColorBlendState = &color_blending;
 		pipeline_info.pDynamicState = &dynamic_info;
 		pipeline_info.layout = layout;
-		pipeline_info.renderPass = render_pass.handle;
+		pipeline_info.renderPass = render_data->p_render_pass->handle;
 		pipeline_info.subpass = 0;
 		pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
-	
+
 		isVkOk(p_device->table->handle.createGraphicsPipelines(VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &handle), "Failed to create graphics pipeline");
 	}
 
 	Pipeline::Pipeline(
-		Device& device,
-		RenderPass& render_pass,
-		Swapchain& swapchain,
+		RenderData* render_data,
 		Shader& sh_vert,
 		Shader& sh_frag,
 		DescriptorSetLayout* desc_layout,
 		bool enable_vertex_input
-	) : p_device(&device)
+	) : p_device(render_data->p_device)
 	{
 		VkPipelineShaderStageCreateInfo vert_stage_info = {};
 		vert_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -172,14 +171,14 @@ namespace Teapot
 		VkViewport viewport = {};
 		viewport.x = 0.0f;
 		viewport.y = 0.0f;
-		viewport.width = (float)swapchain.handle.extent.width;
-		viewport.height = (float)swapchain.handle.extent.height;
+		viewport.width = (float)render_data->p_swapchain->handle.extent.width;
+		viewport.height = (float)render_data->p_swapchain->handle.extent.height;
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 
 		VkRect2D scissor = {};
 		scissor.offset = { 0, 0 };
-		scissor.extent = swapchain.handle.extent;
+		scissor.extent = render_data->p_swapchain->handle.extent;
 
 		VkPipelineViewportStateCreateInfo viewport_state = {};
 		viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -261,7 +260,7 @@ namespace Teapot
 		pipeline_info.pColorBlendState = &color_blending;
 		pipeline_info.pDynamicState = &dynamic_info;
 		pipeline_info.layout = layout;
-		pipeline_info.renderPass = render_pass.handle;
+		pipeline_info.renderPass = render_data->p_render_pass->handle;
 		pipeline_info.subpass = 0;
 		pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
 

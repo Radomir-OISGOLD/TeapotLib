@@ -48,9 +48,9 @@ namespace Teapot
 		return *windows.back();
 	}
 
-	PhysDevice& Instance::createPhysicalDevice(Surface& surface)
+	PhysDevice& Instance::createPhysicalDevice(Init* init)
 	{
-		physical_devices.emplace_back(std::make_unique<PhysDevice>(*this, surface));
+		physical_devices.emplace_back(std::make_unique<PhysDevice>(init));
 		return *physical_devices.back();
 	}
 }

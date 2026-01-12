@@ -2,11 +2,12 @@
 #include "Teapot/core/device.hpp"
 #include "Teapot/core/dispatch.hpp"
 #include "Teapot/core/image.hpp"
+#include "Teapot/common/structures.hpp"
 
 namespace Teapot
 {
-	DescriptorSetLayout::DescriptorSetLayout(Device& device)
-		: p_device(&device)
+	DescriptorSetLayout::DescriptorSetLayout(Init* init)
+		: p_device(init->p_device)
 	{
 		// Create binding for combined image sampler (texture + sampler)
 		VkDescriptorSetLayoutBinding sampler_binding = {};
@@ -35,8 +36,8 @@ namespace Teapot
 		}
 	}
 
-	DescriptorPool::DescriptorPool(Device& device, uint32_t max_sets)
-		: p_device(&device)
+	DescriptorPool::DescriptorPool(Init* init, uint32_t max_sets)
+		: p_device(init->p_device)
 	{
 		VkDescriptorPoolSize pool_size = {};
 		pool_size.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -64,21 +65,19 @@ namespace Teapot
 	}
 
 	DescriptorSet::DescriptorSet(
-		Device& device,
-		DescriptorPool& pool,
-		DescriptorSetLayout& layout,
+		RenderData* render_data,
 		Texture& texture
 	)
 	{
 		// Allocate descriptor set from pool
 		VkDescriptorSetAllocateInfo alloc_info = {};
 		alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		alloc_info.descriptorPool = pool.handle;
+		alloc_info.descriptorPool = render_data->p_descriptor_pool->handle;
 		alloc_info.descriptorSetCount = 1;
-		alloc_info.pSetLayouts = &layout.handle;
+		alloc_info.pSetLayouts = &render_data->p_descriptor_set_layout->handle;
 
 		isVkOk(
-			device.table->handle.allocateDescriptorSets(&alloc_info, &handle),
+			render_data->p_device->table->handle.allocateDescriptorSets(&alloc_info, &handle),
 			"Failed to allocate descriptor set"
 		);
 
@@ -97,7 +96,7 @@ namespace Teapot
 		descriptor_write.descriptorCount = 1;
 		descriptor_write.pImageInfo = &image_info;
 
-		device.table->handle.updateDescriptorSets(1, &descriptor_write, 0, nullptr);
+		render_data->p_device->table->handle.updateDescriptorSets(1, &descriptor_write, 0, nullptr);
 	}
 }
 

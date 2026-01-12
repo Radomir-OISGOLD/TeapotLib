@@ -1,6 +1,7 @@
 #include "Teapot/pipeline/shader.hpp"
 #include "Teapot/core/device.hpp"
 #include "Teapot/core/dispatch.hpp"
+#include "Teapot/common/structures.hpp"
 
 #include <fstream>
 #include <vector>
@@ -28,17 +29,17 @@ namespace
 
 namespace Teapot
 {
-	Shader::Shader(Device& device, const char* file_path)
-		: p_device(&device)
+	Shader::Shader(Init* init, const char* file_path)
+		: p_device(init->p_device)
 	{
 		auto code = readFile(file_path);
 
 		VkShaderModuleCreateInfo create_info = {};
-   		create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    	create_info.codeSize = code.size();
-    	create_info.pCode = reinterpret_cast<const uint32_t*>(code.data());
+		create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+		create_info.codeSize = code.size();
+		create_info.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
-    	isVkOk(p_device->table->handle.createShaderModule(&create_info, nullptr, &handle), "Failed to create shader module");
+		isVkOk(p_device->table->handle.createShaderModule(&create_info, nullptr, &handle), "Failed to create shader module");
 	}
 
 	Shader::~Shader()

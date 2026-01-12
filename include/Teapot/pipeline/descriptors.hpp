@@ -7,7 +7,7 @@ namespace Teapot
 {
 	struct DescriptorSetLayout
 	{
-		DescriptorSetLayout(Device& device);
+		DescriptorSetLayout(Init* init);
 		~DescriptorSetLayout();
 
 		// Non-copyable and non-movable
@@ -22,7 +22,7 @@ namespace Teapot
 
 	struct DescriptorPool
 	{
-		DescriptorPool(Device& device, uint32_t max_sets);
+		DescriptorPool(Init* init, uint32_t max_sets);
 		~DescriptorPool();
 
 		// Non-copyable and non-movable
@@ -38,9 +38,7 @@ namespace Teapot
 	struct DescriptorSet
 	{
 		DescriptorSet(
-			Device& device,
-			DescriptorPool& pool,
-			DescriptorSetLayout& layout,
+			RenderData* render_data,
 			Texture& texture
 		);
 

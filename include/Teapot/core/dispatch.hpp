@@ -6,7 +6,7 @@ namespace Teapot
 {
 	struct DispatchTable
 	{
-		DispatchTable(Device& device);
+		DispatchTable(Init* init);
 		~DispatchTable() = default;
 
 		vkb::DispatchTable handle;
@@ -14,9 +14,9 @@ namespace Teapot
 
 	struct InstanceDispatchTable
 	{
-		InstanceDispatchTable(Instance& instance);
+		InstanceDispatchTable(Init* init);
 		~InstanceDispatchTable() = default;
-		
+
 		vkb::InstanceDispatchTable handle;
 	};
 }

@@ -3,6 +3,7 @@
 #include "Teapot/platform/input.hpp"
 #include "Teapot/ui/button.hpp"
 #include "Teapot/core/instance.hpp"
+#include "Teapot/common/structures.hpp"
 
 #include <stdexcept>
 
@@ -26,14 +27,14 @@ namespace Teapot
 		}
 	}
 
-	void Window::createSurface(Instance& instance)
+	void Window::createSurface(Init* init)
 	{
-		surface = std::make_unique<Surface>(*this, instance);
+		surface = std::make_unique<Surface>(init);
 	}
 
-	void Window::initInput()
+	void Window::initInput(Init* init)
 	{
-		input = std::make_unique<InputManager>(*this);
+		input = std::make_unique<InputManager>(init);
 	}
 
 	Button* Window::newButton(
@@ -62,11 +63,11 @@ namespace Teapot
 
 
 	// --- Surface ---
-	Surface::Surface(Window& window, Instance& instance) :
-		p_window(&window),
-		p_instance(&instance)
+	Surface::Surface(Init* init) :
+		p_window(init->p_window),
+		p_instance(init->p_instance)
 	{
-		VkResult result = glfwCreateWindowSurface(instance.handle, window.handle, nullptr, &handle);
+		VkResult result = glfwCreateWindowSurface(init->p_instance->handle, init->p_window->handle, nullptr, &handle);
 		if (result != VK_SUCCESS) {
 			err("Failed to create window surface. Error: " + std::to_string(result));
 		}

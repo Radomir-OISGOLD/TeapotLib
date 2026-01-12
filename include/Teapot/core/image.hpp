@@ -7,7 +7,7 @@ namespace Teapot
 	// Represents a non-owned VkImage and an owned VkImageView
 	struct Image
 	{
-		Image(Device& device, VkImage image, VkFormat format);
+		Image(Init* init, VkImage image, VkFormat format);
 		~Image();
 
 		// Movable but not copyable
@@ -24,8 +24,7 @@ namespace Teapot
 
 	struct Texture
 	{
-		Texture(LoadedImage& image, Device& device, 
-		CommandPool& pool, Queue& graphics_queue);
+		Texture(Init* init, RenderData* render_data, LoadedImage& loaded_image);
 		~Texture();
 		
 		// Movable but not copyable

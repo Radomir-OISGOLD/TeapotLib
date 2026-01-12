@@ -17,7 +17,7 @@ namespace Teapot
 		Instance& operator=(Instance&&) = default;
 
 		Window& createWindow(const char* title, unsigned int w, unsigned int h);
-		PhysDevice& createPhysicalDevice(Surface& surface);
+		PhysDevice& createPhysicalDevice(Init* init);
 
 		vkb::Instance handle;
 		

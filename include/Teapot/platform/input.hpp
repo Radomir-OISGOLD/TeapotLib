@@ -21,7 +21,7 @@ namespace Teapot
 	class InputManager
 	{
 	public:
-		InputManager(Window& window);
+		InputManager(Init* init);
 		~InputManager();
 
 		// Non-copyable and non-movable

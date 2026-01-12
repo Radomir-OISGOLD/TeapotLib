@@ -1,10 +1,11 @@
 #include "Teapot/platform/input.hpp"
 #include "Teapot/platform/window.hpp"
+#include "Teapot/common/structures.hpp"
 
 namespace Teapot
 {
-	InputManager::InputManager(Window& window)
-		: p_window(&window)
+	InputManager::InputManager(Init* init)
+		: p_window(init->p_window)
 	{
 		// Set this InputManager as the user pointer for GLFW callbacks
 		glfwSetWindowUserPointer(p_window->handle, this);

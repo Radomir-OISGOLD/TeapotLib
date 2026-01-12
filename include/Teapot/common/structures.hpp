@@ -10,6 +10,7 @@
 #include "Teapot/pipeline/commandpool.hpp"
 #include "Teapot/pipeline/framebuffer.hpp"
 #include "Teapot/pipeline/renderpass.hpp"
+#include "Teapot/pipeline/descriptors.hpp"
 
 
 namespace Teapot
@@ -21,6 +22,7 @@ namespace Teapot
 		Instance* p_instance;
 		vkb::InstanceDispatchTable p_inst_disp;
 		Surface* p_surface;
+		PhysDevice* p_phys_device;
 		Device* p_device;
 		DispatchTable* p_disp;
 		Swapchain* p_swapchain;
@@ -28,6 +30,7 @@ namespace Teapot
 
 	struct RenderData
 	{
+		Device* p_device;
 		Queue* p_graphics_queue;
 		Queue* p_present_queue;
 
@@ -37,13 +40,16 @@ namespace Teapot
 		Pipeline* p_graphics_pipeline;
 		CommandPool* p_command_pool;
 
+		DescriptorSetLayout* p_descriptor_set_layout;
+		DescriptorPool* p_descriptor_pool;
+
 		vec<VkCommandBuffer> command_buffers;
 
 		vec<VkSemaphore> available_semaphores;
 		vec<VkSemaphore> finished_semaphore;
 		vec<VkFence> in_flight_fences;
 		vec<VkFence> image_in_flight;
-        
+
 		size_t current_frame = 0;
 	};
 
