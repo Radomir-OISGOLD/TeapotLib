@@ -19,6 +19,18 @@ set(glfw3_DIR "${LIB_DIR}/GLFW/lib/cmake/glfw3/")
 find_package(glfw3 REQUIRED)
 find_package(Vulkan REQUIRED)
 
+option(TEAPOTLIB_BUILD_TESTS "Build the tests for TeapotLib" ON)
+if(TEAPOTLIB_BUILD_TESTS)
+    include(FetchContent)
+    FetchContent_Declare(
+      googletest
+      URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+    )
+    # For Windows: Prevent overriding the parent project's compiler/linker settings
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
+endif()
+
 file(GLOB_RECURSE PUBLIC_HEADERS
 	"include/Teapot/core/*.hpp"
 	"include/Teapot/platform/*.hpp"
@@ -54,11 +66,18 @@ target_link_directories(
 
 target_link_libraries(
 	TeapotLib
-	PRIVATE
+	PUBLIC
 
 	Vulkan::Vulkan
-	glfw3
+	glfw
 )
+
+option(TEAPOTLIB_BUILD_TESTS "Build the tests for TeapotLib" ON)
+if(TEAPOTLIB_BUILD_TESTS)
+    add_subdirectory(tests)
+endif()
+
+enable_testing()
 
 target_include_directories(
     TeapotLib

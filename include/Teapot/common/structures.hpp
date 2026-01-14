@@ -11,6 +11,7 @@
 #include "Teapot/pipeline/framebuffer.hpp"
 #include "Teapot/pipeline/renderpass.hpp"
 #include "Teapot/pipeline/descriptors.hpp"
+#include "Teapot/core/dispatch.hpp"
 
 
 namespace Teapot
