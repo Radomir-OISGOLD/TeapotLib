@@ -44,6 +44,7 @@ namespace Teapot
 		}
 		handle = dev_ret.value();
 
+		printf("is ok \n");
 		// Update init->p_device before creating dispatch table
 		table = std::make_unique<DispatchTable>(init);
 	}

@@ -19,18 +19,6 @@ set(glfw3_DIR "${LIB_DIR}/GLFW/lib/cmake/glfw3/")
 find_package(glfw3 REQUIRED)
 find_package(Vulkan REQUIRED)
 
-option(TEAPOTLIB_BUILD_TESTS "Build the tests for TeapotLib" ON)
-if(TEAPOTLIB_BUILD_TESTS)
-    include(FetchContent)
-    FetchContent_Declare(
-      googletest
-      URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
-    )
-    # For Windows: Prevent overriding the parent project's compiler/linker settings
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    FetchContent_MakeAvailable(googletest)
-endif()
-
 file(GLOB_RECURSE PUBLIC_HEADERS
 	"include/Teapot/core/*.hpp"
 	"include/Teapot/platform/*.hpp"
@@ -40,13 +28,6 @@ file(GLOB_RECURSE PUBLIC_HEADERS
 )
 add_library(TeapotLib STATIC ${PUBLIC_SOURCE} "${CMAKE_CURRENT_SOURCE_DIR}/deps/vkb/VkBootstrap.cpp")
 
-target_include_directories(
-	TeapotLib 
-	PRIVATE 
-	"${CMAKE_CURRENT_SOURCE_DIR}/include" 
-	"${CMAKE_CURRENT_SOURCE_DIR}/deps/vkb"
-	"${CMAKE_CURRENT_SOURCE_DIR}/deps/external_includes"
-)
 
 target_include_directories(
 	TeapotLib 
@@ -54,6 +35,7 @@ target_include_directories(
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/deps/vkb>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/deps/external_includes>
 	$<INSTALL_INTERFACE:include>
 	$<INSTALL_INTERFACE:include/deps/vkb>
 )
@@ -72,18 +54,11 @@ target_link_libraries(
 	glfw
 )
 
-option(TEAPOTLIB_BUILD_TESTS "Build the tests for TeapotLib" ON)
-if(TEAPOTLIB_BUILD_TESTS)
-    add_subdirectory(tests)
-endif()
-
-enable_testing()
-
 target_include_directories(
-    TeapotLib
-    PUBLIC
-    $<TARGET_PROPERTY:Vulkan::Vulkan,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:glfw,INTERFACE_INCLUDE_DIRECTORIES>
+	TeapotLib
+	PUBLIC
+	$<TARGET_PROPERTY:Vulkan::Vulkan,INTERFACE_INCLUDE_DIRECTORIES>
+	$<TARGET_PROPERTY:glfw,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 install(
@@ -127,3 +102,37 @@ install(
 		  "${CMAKE_CURRENT_BINARY_DIR}/TeapotLibConfigVersion.cmake"
 	DESTINATION "${CMAKE_INSTALL_PREFIX}/cmake/TeapotLib"
 )
+
+
+############################### TESTS ###############################
+
+option(TEAPOTLIB_BUILD_TESTS "Build the tests for TeapotLib" ON)
+if(TEAPOTLIB_BUILD_TESTS)
+	include(FetchContent)
+	FetchContent_Declare(
+	  googletest
+	  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+	)
+	# For Windows: Prevent overriding the parent project's compiler/linker settings
+	set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+	FetchContent_MakeAvailable(googletest)
+endif()
+
+enable_testing()
+
+file(GLOB_RECURSE TEAPOT_TESTS
+	"tests/*.cpp"
+)
+add_executable(
+	TeapotTests
+	${TEAPOT_TESTS}
+)
+target_link_libraries(
+	TeapotTests
+	GTest::gtest_main
+	TeapotLib
+)
+
+include(GoogleTest)
+gtest_discover_tests(TeapotTests)
+
