@@ -2,26 +2,33 @@
 #pragma once
 
 #include "Teapot/common/cap.hpp"
+#include "glm/vec2.hpp"
 
 namespace Teapot
 {
 	struct MouseState
 	{
-		double x = 0.0;
-		double y = 0.0;
-		double prev_x = 0.0;
-		double prev_y = 0.0;
+		glm::vec2 loc = { 0, 0 };
+		glm::vec2 prev_loc = { 0, 0 };
 
-		bool left_button = false;
-		bool left_button_prev = false;
-		bool left_button_just_pressed = false;
-		bool left_button_just_released = false;
+		bool lmb =		false;
+		bool prev_lmb = false;
+		bool rmb =		false;
+		bool prev_rmb = false;
+		bool mmb =		false;
+		bool prev_mmb =	false;
+
+		double scroll_offset = 0.0;
 	};
 
 	class InputManager
 	{
+		friend class Window;
+
+		Window* p_window = nullptr;
+		MouseState mouse;
 	public:
-		InputManager(Init* init);
+		InputManager(Window& window);
 		~InputManager();
 
 		// Non-copyable and non-movable
@@ -33,15 +40,12 @@ namespace Teapot
 		// Update input state - call once per frame
 		void update();
 
-		const MouseState& getMouse() const { return mouse_state; }
+		const MouseState& getMouse() const { return mouse; }
 
-		// GLFW callback handlers (must be static)
-		static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-		static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos);
-
-	private:
-		Window* p_window = nullptr;
-		MouseState mouse_state;
+		// GLFW callbacks (must be static)
+		static void clickCallback_GLFW(GLFWwindow* window, int button, int action, int mods);
+		static void cursorCallback_GLFW(GLFWwindow* window, double x_pos, double y_pos);
+		static void scrollCallback_GLFW(GLFWwindow* window, double x_offset, double y_offset);
 	};
 }
 

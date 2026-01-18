@@ -6,18 +6,16 @@ namespace Teapot
 {
 	struct CommandPool
 	{
-		CommandPool(Init* init, vkb::QueueType queue_type);
+		CommandPool(Init& init, vkb::QueueType queue_type);
 		~CommandPool();
 
-		// Movable but not copyable
 		CommandPool(const CommandPool&) = delete;
 		CommandPool& operator=(const CommandPool&) = delete;
 		CommandPool(CommandPool&&) = default;
 		CommandPool& operator=(CommandPool&&) = default;
 
-		void allocBuffers(Pipeline& pipeline); // This will need to be refactored
+		//void allocBuffers(Pipeline& pipeline);
 
-		// New methods for UI rendering
 		void allocateCommandBuffers(uint32_t count);
 		void recordUICommands(
 			uint32_t image_index,
@@ -27,9 +25,9 @@ namespace Teapot
 			Window& window
 		);
 
-		VkCommandPool handle = VK_NULL_HANDLE;
-		vec<VkCommandBuffer> buffers;
+		vk::CommandPool handle = VK_NULL_HANDLE;
+		vec<vk::CommandBuffer> buffers;
 
-		Device* p_device = nullptr; // non-owning
+		Device* p_device = nullptr;
 	};
 }

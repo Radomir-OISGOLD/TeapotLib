@@ -1,13 +1,14 @@
 
+#include <stdexcept>
+
 #include "Teapot/core/instance.hpp"
 #include "Teapot/platform/window.hpp"
 #include "Teapot/core/device.hpp"
-
-#include <stdexcept>
+#include "Teapot/common/structures.hpp"
 
 namespace Teapot
 {
-	Instance::Instance(const char* app_name)
+	Instance::Instance(const char* app_name, Init& init)
 	{
 		if (!glfwInit()) {
 			err("Failed to initialize GLFW.");
@@ -31,27 +32,15 @@ namespace Teapot
 			err("Failed to create Vulkan instance: " + inst_ret.error().message());
 		}
 		handle = inst_ret.value();
+		init.p_instance = this;
 	}
 
 	Instance::~Instance()
 	{
-		// physical_devices and windows are destroyed automatically by unique_ptr
 		if (handle.instance) {
 			vkb::destroy_instance(handle);
 		}
 		glfwTerminate();
-	}
-
-	Window& Instance::createWindow(const char* title, unsigned int w, unsigned int h)
-	{
-		windows.emplace_back(std::make_unique<Window>(title, w, h));
-		return *windows.back();
-	}
-
-	PhysDevice& Instance::createPhysicalDevice(Init* init)
-	{
-		physical_devices.emplace_back(std::make_unique<PhysDevice>(init));
-		return *physical_devices.back();
 	}
 }
 

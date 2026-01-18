@@ -4,25 +4,19 @@
 
 namespace Teapot
 {
-	Button::Button(
-		const vec2& bottom_left,
-		const vec2& top_right,
-		ButtonTextures textures,
-		std::function<void()> callback
-	)
-		: bottom_left(bottom_left)
-		, top_right(top_right)
-		, textures(textures)
-		, callback(callback)
-	{
-	}
+	Button::Button(const glm::vec2 bottom_left, const glm::vec2 top_right,
+		ButtonTextures textures, std::function<void()> callback) :
+		bottom_left(bottom_left),
+		top_right(top_right),
+		textures(textures),
+		callback(callback){}
 
 	void Button::update(const MouseState& mouse)
 	{
 		// Disabled buttons don't respond to input
-		if (state == ButtonState::Disabled) return;
+		if (state == ButtonState::OFF) return;
 
-		bool currently_hovered = contains(static_cast<float>(mouse.x), static_cast<float>(mouse.y));
+		bool currently_hovered = is_hovered();
 
 		if (currently_hovered)
 		{
@@ -52,10 +46,10 @@ namespace Teapot
 		was_hovered_last_frame = currently_hovered;
 	}
 
-	bool Button::contains(float x, float y) const
+	bool Button::is_hovered(glm::vec2 loc) const
 	{
-		return x >= bottom_left.x && x <= top_right.x &&
-		       y >= bottom_left.y && y <= top_right.y;
+		return loc.x >= bottom_left.x && loc.x <= top_right.x &&
+			loc.y >= bottom_left.y && loc.y <= top_right.y;
 	}
 
 	Texture* Button::getCurrentTexture() const

@@ -4,15 +4,13 @@
 
 namespace Teapot
 {
-	InputManager::InputManager(Init* init)
-		: p_window(init->p_window)
+	InputManager::InputManager(Window& window)
 	{
-		// Set this InputManager as the user pointer for GLFW callbacks
-		glfwSetWindowUserPointer(p_window->handle, this);
+		// Set this InputManager as the user pointer for GLFW callbacks.
+		glfwSetWindowUserPointer(window.handle, this);
 
-		// Set up GLFW callbacks
-		glfwSetMouseButtonCallback(p_window->handle, mouseButtonCallback);
-		glfwSetCursorPosCallback(p_window->handle, cursorPosCallback);
+		glfwSetMouseButtonCallback(p_window->handle, clickCallback_GLFW);
+		glfwSetCursorPosCallback(p_window->handle, cursorCallback_GLFW);
 	}
 
 	InputManager::~InputManager()
@@ -27,34 +25,44 @@ namespace Teapot
 
 	void InputManager::update()
 	{
-		// Update previous state
-		mouse_state.prev_x = mouse_state.x;
-		mouse_state.prev_y = mouse_state.y;
-		mouse_state.left_button_prev = mouse_state.left_button;
+		// Update previous states
+		mouse.prev_loc = mouse.loc;
+		mouse.prev_lmb = mouse.lmb;
 
-		// Compute just pressed/released states
-		mouse_state.left_button_just_pressed = mouse_state.left_button && !mouse_state.left_button_prev;
-		mouse_state.left_button_just_released = !mouse_state.left_button && mouse_state.left_button_prev;
 	}
 
-	void InputManager::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+	void InputManager::clickCallback_GLFW(GLFWwindow* window, int button, int action, int mods)
 	{
 		InputManager* input_manager = static_cast<InputManager*>(glfwGetWindowUserPointer(window));
 		if (!input_manager) return;
 
-		if (button == GLFW_MOUSE_BUTTON_LEFT)
+		switch (button)
 		{
-			input_manager->mouse_state.left_button = (action == GLFW_PRESS);
+		case GLFW_MOUSE_BUTTON_LEFT:
+			input_manager->mouse.lmb = (action == GLFW_PRESS);
+		case GLFW_MOUSE_BUTTON_RIGHT:
+			input_manager->mouse.rmb = (action == GLFW_PRESS);
+		case GLFW_MOUSE_BUTTON_MIDDLE:
+			input_manager->mouse.mmb = (action == GLFW_PRESS);
+		default:
+			return;
 		}
 	}
 
-	void InputManager::cursorPosCallback(GLFWwindow* window, double xpos, double ypos)
+	void InputManager::cursorCallback_GLFW(GLFWwindow* window, double xpos, double ypos)
 	{
-		InputManager* input_manager = static_cast<InputManager*>(glfwGetWindowUserPointer(window));
-		if (!input_manager) return;
+		InputManager* p_input_manager = static_cast<InputManager*>(glfwGetWindowUserPointer(window));
+		if (!p_input_manager) return;
 
-		input_manager->mouse_state.x = xpos;
-		input_manager->mouse_state.y = ypos;
+		p_input_manager->mouse.loc = { xpos, ypos };
+	}
+
+	void InputManager::scrollCallback_GLFW(GLFWwindow* window, double x_offset, double y_offset)
+	{
+		InputManager* p_input_manager = static_cast<InputManager*>(glfwGetWindowUserPointer(window));
+		if (!p_input_manager) return;
+
+		p_input_manager->mouse.scroll_offset = y_offset;
 	}
 }
 

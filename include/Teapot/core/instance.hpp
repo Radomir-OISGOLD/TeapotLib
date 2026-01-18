@@ -3,11 +3,13 @@
 
 #include "Teapot/common/cap.hpp"
 
+struct Init;
+
 namespace Teapot
 {
 	struct Instance
 	{
-		Instance(const char* app_name);
+		Instance(const char* app_name, Init& init);
 		~Instance();
 
 		// Movable but not copyable
@@ -16,12 +18,12 @@ namespace Teapot
 		Instance(Instance&&) = default;
 		Instance& operator=(Instance&&) = default;
 
-		Window& createWindow(const char* title, unsigned int w, unsigned int h);
-		PhysDevice& createPhysicalDevice(Init* init);
 
 		vkb::Instance handle;
 		
 		vec<std::unique_ptr<Window>> windows;
 		vec<std::unique_ptr<PhysDevice>> physical_devices;
+
+
 	};
 }

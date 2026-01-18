@@ -17,7 +17,8 @@
 #include <vulkan/vulkan.hpp>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-#include <VkBootstrap.h>
+#include <vkb/VkBootstrap.h>
+#include <glm/vec2.hpp>
 #include <vulkan/vk_enum_string_helper.h>
 
 
@@ -26,46 +27,40 @@
 namespace Teapot
 {
 	// Forward declarations
-	// common
-	struct Init;
-	struct RenderData;
+	class Init;
+	class RenderData;
 
-	// core
-	struct Device;
-	struct PhysDevice;
-	struct Instance;
-	struct Queue;
-	struct Swapchain;
-	struct DispatchTable;
-	struct InstanceDispatchTable;
-	struct Image;
-	struct Texture;
-	struct LoadedImage;
+	class Device;
+	class PhysDevice;
+	class Instance;
+	class Queue;
+	class Swapchain;
+	class DispatchTable;
+	class InstanceDispatchTable;
+	class Image;
+	class Texture;
+	class LoadedImage;
 
-	// pipeline
-	struct Shader;
-	struct CommandPool;
-	struct Pipeline;
-	struct RenderPass;
-	struct Framebuffer;
-	struct DescriptorSetLayout;
-	struct DescriptorPool;
-	struct DescriptorSet;
+	class Shader;
+	class CommandPool;
+	class Pipeline;
+	class RenderPass;
+	class Framebuffer;
+	class DescriptorSetLayout;
+	class DescriptorPool;
+	class DescriptorSet;
 
-	// platform
-	struct Window;
-	struct Surface;
+	class Window;
+	class Surface;
 	class InputManager;
-	struct MouseState;
+	class MouseState;
 
-	// ui
-	struct vec2;
 	enum class ButtonState;
-	struct ButtonTextures;
+	class ButtonTextures;
 	class Button;
-	struct UIVertex;
+	class UIVertex;
 	class Projection;
-	struct UIQuad;
+	class UIQuad;
 	class UIRenderer;
 
 	template <typename T>

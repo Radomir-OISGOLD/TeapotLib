@@ -13,7 +13,7 @@
 
 namespace Teapot
 {
-	// --- Image ---
+
 	Image::Image(Init* init, VkImage vk_image, VkFormat format)
 		: image(vk_image), p_device(init->p_device)
 	{

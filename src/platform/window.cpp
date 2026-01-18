@@ -9,8 +9,7 @@
 
 namespace Teapot
 {
-	// --- Window ---
-	Window::Window(const char* title, unsigned int w, unsigned int h)
+	Window::Window(const char* title, unsigned int w, unsigned int h, Init& init)
 		: width(w), height(h)
 	{
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -18,6 +17,7 @@ namespace Teapot
 		if (!handle) {
 			err("Failed to create GLFW window.");
 		}
+		init.p_window = this;
 	}
 
 	Window::~Window()
@@ -27,22 +27,8 @@ namespace Teapot
 		}
 	}
 
-	void Window::createSurface(Init* init)
-	{
-		surface = std::make_unique<Surface>(init);
-	}
-
-	void Window::initInput(Init* init)
-	{
-		input = std::make_unique<InputManager>(init);
-	}
-
-	Button* Window::newButton(
-		const vec2& bottom_left,
-		const vec2& top_right,
-		ButtonTextures textures,
-		std::function<void()> callback
-	)
+	Button* Window::addButton(const glm::vec2 bottom_left, const glm::vec2 top_right,
+		ButtonTextures textures, std::function<void()> callback)
 	{
 		auto button = std::make_unique<Button>(bottom_left, top_right, textures, callback);
 		Button* ptr = button.get();
@@ -50,7 +36,23 @@ namespace Teapot
 		return ptr;
 	}
 
-	void Window::updateButtons()
+	Surface* Window::addSurface()
+	{
+		auto button = std::make_unique<Surface>();
+		Button* ptr = button.get();
+		buttons.push_back(std::move(button));
+		return ptr;
+	}
+
+	InputManager* Window::plugInput()
+	{
+		auto button = std::make_unique<Button>(bottom_left, top_right, textures, callback);
+		Button* ptr = button.get();
+		buttons.push_back(std::move(button));
+		return ptr;
+	}
+
+	void Window::updateButtons() const
 	{
 		if (!input) return;
 
@@ -61,13 +63,10 @@ namespace Teapot
 		}
 	}
 
-
-	// --- Surface ---
-	Surface::Surface(Init* init) :
-		p_window(init->p_window),
-		p_instance(init->p_instance)
+	Surface::Surface(Window* p_window) :
+		p_window(p_window)
 	{
-		VkResult result = glfwCreateWindowSurface(init->p_instance->handle, init->p_window->handle, nullptr, &handle);
+		VkResult result = glfwCreateWindowSurface(init.p_instance->handle, init.p_window->handle, nullptr, &handle);
 		if (result != VK_SUCCESS) {
 			err("Failed to create window surface. Error: " + std::to_string(result));
 		}
@@ -75,8 +74,8 @@ namespace Teapot
 
 	Surface::~Surface()
 	{
-		if (handle != VK_NULL_HANDLE && p_instance != nullptr) {
-			vkb::destroy_surface(p_instance->handle, handle);
-		}
+		printf("aaa");
+		vkb::destroy_surface(p_instance->handle, handle);
+		printf("bbb");
 	}
 }
