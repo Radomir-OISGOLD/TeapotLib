@@ -9,11 +9,11 @@
 
 namespace Teapot
 {
-	Window::Window(const char* title, unsigned int w, unsigned int h, Init& init)
-		: width(w), height(h)
+	Window::Window(const char* title, glm::vec2<unsigned int> size, Init& init) :
+		size(size)
 	{
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		handle = glfwCreateWindow(w, h, title, NULL, NULL);
+		handle = glfwCreateWindow(size.x(), size.y(), title, nullptr, nullptr);
 		if (!handle) {
 			err("Failed to create GLFW window.");
 		}
@@ -38,17 +38,17 @@ namespace Teapot
 
 	Surface* Window::addSurface()
 	{
-		auto button = std::make_unique<Surface>();
-		Button* ptr = button.get();
-		buttons.push_back(std::move(button));
+		auto surface = std::make_unique<Surface>(this);
+		Surface* ptr = surface.get();
+		this->surface = std::move(surface);
 		return ptr;
 	}
 
 	InputManager* Window::plugInput()
 	{
-		auto button = std::make_unique<Button>(bottom_left, top_right, textures, callback);
-		Button* ptr = button.get();
-		buttons.push_back(std::move(button));
+		auto input = std::make_unique<InputManager>(this);
+		InputManager* ptr = input.get();
+		this->input = std::move(input);
 		return ptr;
 	}
 
@@ -66,7 +66,7 @@ namespace Teapot
 	Surface::Surface(Window* p_window) :
 		p_window(p_window)
 	{
-		VkResult result = glfwCreateWindowSurface(init.p_instance->handle, init.p_window->handle, nullptr, &handle);
+		VkResult result = glfwCreateWindowSurface(p_window->p_instance->handle, p_window->handle, nullptr, &handle);
 		if (result != VK_SUCCESS) {
 			err("Failed to create window surface. Error: " + std::to_string(result));
 		}
@@ -75,7 +75,7 @@ namespace Teapot
 	Surface::~Surface()
 	{
 		printf("aaa");
-		vkb::destroy_surface(p_instance->handle, handle);
+		vkb::destroy_surface(p_window->p_instance->handle, handle);
 		printf("bbb");
 	}
 }

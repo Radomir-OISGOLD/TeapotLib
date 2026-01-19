@@ -19,8 +19,10 @@ namespace Teapot
 		bool prev_mmb =	false;
 
 		double scroll_offset = 0.0;
+		double prev_offset = 0.0;
 	};
 
+	// TODO - Add keyboard
 	class InputManager
 	{
 		friend class Window;
@@ -28,7 +30,7 @@ namespace Teapot
 		Window* p_window = nullptr;
 		MouseState mouse;
 	public:
-		InputManager(Window& window);
+		InputManager(Window* p_window);
 		~InputManager();
 
 		// Non-copyable and non-movable

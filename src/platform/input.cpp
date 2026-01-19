@@ -4,7 +4,7 @@
 
 namespace Teapot
 {
-	InputManager::InputManager(Window& window)
+	InputManager::InputManager(Window* window)
 	{
 		// Set this InputManager as the user pointer for GLFW callbacks.
 		glfwSetWindowUserPointer(window.handle, this);
@@ -27,8 +27,12 @@ namespace Teapot
 	{
 		// Update previous states
 		mouse.prev_loc = mouse.loc;
-		mouse.prev_lmb = mouse.lmb;
 
+		mouse.prev_lmb = mouse.lmb;
+		mouse.prev_rmb = mouse.rmb;
+		mouse.prev_mmb = mouse.mmb;
+
+		mouse.prev_offset = mouse.scroll_offset;
 	}
 
 	void InputManager::clickCallback_GLFW(GLFWwindow* window, int button, int action, int mods)
@@ -49,12 +53,12 @@ namespace Teapot
 		}
 	}
 
-	void InputManager::cursorCallback_GLFW(GLFWwindow* window, double xpos, double ypos)
+	void InputManager::cursorCallback_GLFW(GLFWwindow* window, double x_pos, double y_pos)
 	{
 		InputManager* p_input_manager = static_cast<InputManager*>(glfwGetWindowUserPointer(window));
 		if (!p_input_manager) return;
 
-		p_input_manager->mouse.loc = { xpos, ypos };
+		p_input_manager->mouse.loc = { x_pos, y_pos };
 	}
 
 	void InputManager::scrollCallback_GLFW(GLFWwindow* window, double x_offset, double y_offset)

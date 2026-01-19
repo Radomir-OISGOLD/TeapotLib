@@ -50,8 +50,7 @@ namespace Teapot
 
 		glm::vec2<unsigned int> getSize() const { return size; }
 
-		Button* addButton(const glm::vec2 bottom_left, const glm::vec2 top_right,
-			ButtonTextures textures, std::function<void()> callback);
+		Button* addButton(const glm::vec2 bottom_left, const glm::vec2 top_right, ButtonTextures textures, std::function<void()> callback);
 		Surface* addSurface();
 		InputManager* plugInput();
 
