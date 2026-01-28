@@ -1,0 +1,8 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="../TeapotLibTests/TeapotLibTests.vcxproj" Id="a9acfaa1-885c-462e-a7c0-9fbc4b9e797b" />
+  <Project Path="TeapotLib.vcxproj" Id="598148d9-9ebe-441b-9138-5b2dc82bf4f8" />
+</Solution>

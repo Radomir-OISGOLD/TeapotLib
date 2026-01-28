@@ -1,0 +1,10 @@
+﻿  commandpool.cpp
+  device.cpp
+  framebuffer.cpp
+  image.cpp
+  input.cpp
+  instance.cpp
+  ui_renderer.cpp
+  window.cpp
+  Generating Code...
+  TeapotLib.vcxproj -> C:\.work\OISGOLD\TeapotLib\x64\Debug\TeapotLib.lib

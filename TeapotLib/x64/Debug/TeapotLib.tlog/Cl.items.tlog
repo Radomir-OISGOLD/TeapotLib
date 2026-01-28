@@ -1,0 +1,15 @@
+C:\.work\OISGOLD\TeapotLib\src\button.cpp;C:\.work\OISGOLD\TeapotLib\TeapotLib\x64\Debug\button.obj
+C:\.work\OISGOLD\TeapotLib\src\commandpool.cpp;C:\.work\OISGOLD\TeapotLib\TeapotLib\x64\Debug\commandpool.obj
+C:\.work\OISGOLD\TeapotLib\src\descriptors.cpp;C:\.work\OISGOLD\TeapotLib\TeapotLib\x64\Debug\descriptors.obj
+C:\.work\OISGOLD\TeapotLib\src\device.cpp;C:\.work\OISGOLD\TeapotLib\TeapotLib\x64\Debug\device.obj
+C:\.work\OISGOLD\TeapotLib\src\framebuffer.cpp;C:\.work\OISGOLD\TeapotLib\TeapotLib\x64\Debug\framebuffer.obj
+C:\.work\OISGOLD\TeapotLib\src\image.cpp;C:\.work\OISGOLD\TeapotLib\TeapotLib\x64\Debug\image.obj
+C:\.work\OISGOLD\TeapotLib\src\input.cpp;C:\.work\OISGOLD\TeapotLib\TeapotLib\x64\Debug\input.obj
+C:\.work\OISGOLD\TeapotLib\src\instance.cpp;C:\.work\OISGOLD\TeapotLib\TeapotLib\x64\Debug\instance.obj
+C:\.work\OISGOLD\TeapotLib\src\pipeline.cpp;C:\.work\OISGOLD\TeapotLib\TeapotLib\x64\Debug\pipeline.obj
+C:\.work\OISGOLD\TeapotLib\src\queue.cpp;C:\.work\OISGOLD\TeapotLib\TeapotLib\x64\Debug\queue.obj
+C:\.work\OISGOLD\TeapotLib\src\renderpass.cpp;C:\.work\OISGOLD\TeapotLib\TeapotLib\x64\Debug\renderpass.obj
+C:\.work\OISGOLD\TeapotLib\src\shader.cpp;C:\.work\OISGOLD\TeapotLib\TeapotLib\x64\Debug\shader.obj
+C:\.work\OISGOLD\TeapotLib\src\swapchain.cpp;C:\.work\OISGOLD\TeapotLib\TeapotLib\x64\Debug\swapchain.obj
+C:\.work\OISGOLD\TeapotLib\src\ui_renderer.cpp;C:\.work\OISGOLD\TeapotLib\TeapotLib\x64\Debug\ui_renderer.obj
+C:\.work\OISGOLD\TeapotLib\src\window.cpp;C:\.work\OISGOLD\TeapotLib\TeapotLib\x64\Debug\window.obj

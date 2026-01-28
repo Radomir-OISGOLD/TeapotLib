@@ -19,115 +19,65 @@ int main()
 {
     try
     {
-        // =============================================================================
-        // 1. CREATE CORE OBJECTS
-        // =============================================================================
-
         Instance instance("Button Example");
-        Window& window = instance.createWindow("Textured Button", 800, 600);
+        Window window("Textured Button", { 800, 600 }, &instance);
+        window.addSurface();
+        window.plugInput();
 
-        // =============================================================================
-        // 2. INITIALIZE VULKAN OBJECTS
-        // =============================================================================
+        instance.physical_devices.emplace_back(std::make_unique<PhysDevice>(&instance));
 
-        Init init = {};
-        init.p_instance = &instance;
-        init.p_window = &window;
+        auto& phys_device = instance.physical_devices.back();
+        auto device_ptr = phys_device->createLogicalDevice();
+        auto& device = *device_ptr;
 
-        window.createSurface(&init);
-        init.p_surface = window.surface.get();
+        device.swapchain = std::make_unique<Swapchain>(&device);
 
-        PhysDevice& phys_device = instance.createPhysicalDevice(&init);
-        init.p_phys_device = &phys_device;
+        Queue graphics_queue(&device, vkb::QueueType::graphics);
+        Queue present_queue(&device, vkb::QueueType::present);
 
-        // Device automatically creates and owns Swapchain and DispatchTable
-        auto device_ptr = phys_device.createLogicalDevice(&init);
-        Device& device = *device_ptr;
-        init.p_device = &device;
-        init.p_disp = device.table.get();
-        init.p_swapchain = device.swapchain.get();
+        RenderPass render_pass(&device, device.swapchain.get());
 
-        // Initialize input handling
-        window.initInput(&init);
-
-        // =============================================================================
-        // 3. CREATE RENDERING COMPONENTS
-        // =============================================================================
-
-        Queue graphics_queue(&init, vkb::QueueType::graphics);
-        Queue present_queue(&init, vkb::QueueType::present);
-
-        RenderPass render_pass(&init);
-
-        // Create framebuffers for each swapchain image
-        vec<std::unique_ptr<Framebuffer>> framebuffers;
+        vec<Framebuffer> framebuffers;
         framebuffers.reserve(device.swapchain->images.size());
-
-        RenderData render_data = {};
-        render_data.p_device = &device;
-        render_data.p_graphics_queue = &graphics_queue;
-        render_data.p_present_queue = &present_queue;
-        render_data.p_swapchain = device.swapchain.get();
-        render_data.p_render_pass = &render_pass;
 
         for (auto& image : device.swapchain->images)
         {
-            framebuffers.push_back(
-                std::make_unique<Framebuffer>(&render_data, image)
-            );
+            framebuffers.emplace_back(&device, &render_pass, device.swapchain.get(), image);
         }
 
-        CommandPool command_pool(&init, vkb::QueueType::graphics);
+        CommandPool command_pool(&device, vkb::QueueType::graphics);
         command_pool.allocateCommandBuffers(
             static_cast<uint32_t>(device.swapchain->images.size())
         );
 
-        // =============================================================================
-        // 4. SETUP UI RENDERING
-        // =============================================================================
+        DescriptorSetLayout desc_layout(&device);
+        DescriptorPool desc_pool(&device, 10);
 
-        DescriptorSetLayout desc_layout(&init);
-        DescriptorPool desc_pool(&init, 10);
+        UIRenderer ui_renderer(&device, &render_pass, device.swapchain.get());
 
-        render_data.p_descriptor_set_layout = &desc_layout;
-        render_data.p_descriptor_pool = &desc_pool;
-
-        UIRenderer ui_renderer(&render_data);
-
-        Shader ui_vert(&init, "shaders/ui_button.vert.spv");
-        Shader ui_frag(&init, "shaders/ui_button.frag.spv");
+        Shader ui_vert(&device, "shaders/ui_button.vert.spv");
+        Shader ui_frag(&device, "shaders/ui_button.frag.spv");
 
         ui_renderer.createPipeline(ui_vert, ui_frag, desc_layout);
         ui_renderer.createBuffers();
 
-        // =============================================================================
-        // 5. CREATE BUTTON WITH TEXTURE
-        // =============================================================================
-
-        // Load button texture
         LoadedImage button_img("path/to/button.png");
-        Texture button_texture(&init, &render_data, button_img);
+        Texture button_texture(&device, &command_pool, &graphics_queue, button_img);
 
-        // Setup button textures (using same texture for all states)
-        ButtonTextures btn_textures = {};
-        btn_textures.normal = &button_texture;
-        btn_textures.hovered = &button_texture;
-        btn_textures.pressed = &button_texture;
-        btn_textures.disabled = &button_texture;
+        ButtonTextures btn_textures;
+        btn_textures.idle = &button_texture;
+        btn_textures.hover = &button_texture;
+        btn_textures.press = &button_texture;
+        btn_textures.off = &button_texture;
 
-        // Create button in center of window (200x100 pixels)
-        window.newButton(
-            vec2(300.0f, 250.0f),  // Bottom-left corner
-            vec2(500.0f, 350.0f),  // Top-right corner
+        window.addButton(
+            {300.0f, 250.0f},
+            {500.0f, 350.0f},
             btn_textures,
             []() {
                 std::cout << "Button clicked!" << std::endl;
             }
         );
-
-        // =============================================================================
-        // 6. MAIN RENDER LOOP
-        // =============================================================================
 
         size_t current_frame = 0;
         const size_t MAX_FRAMES = 2; // Double buffering
@@ -138,42 +88,30 @@ int main()
         {
             glfwPollEvents();
 
-            // Update input state
             window.input->update();
-
-            // Update button interactions
             window.updateButtons();
 
-            // === ACQUIRE NEXT IMAGE ===
-
-            device.table->handle.waitForFences(
-                1,
-                &device.swapchain->in_flight_fences[current_frame],
-                VK_TRUE,
+            device.device.waitForFences(
+                { device.swapchain->in_flight_fences[current_frame] },
+                true,
                 UINT64_MAX
             );
 
             uint32_t image_index;
-            VkResult result = device.table->handle.acquireNextImageKHR(
-                device.swapchain->handle,
+            auto result = device.device.acquireNextImageKHR(
+                device.swapchain->swapchain,
                 UINT64_MAX,
                 device.swapchain->available_semaphores[current_frame],
-                VK_NULL_HANDLE,
-                &image_index
+                nullptr
             );
 
-            if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+            if (result.result == vk::Result::eErrorOutOfDateKHR || result.result == vk::Result::eSuboptimalKHR)
             {
-                // Swapchain needs recreation (window resized)
                 continue;
             }
+            image_index = result.value;
 
-            device.table->handle.resetFences(
-                1,
-                &device.swapchain->in_flight_fences[current_frame]
-            );
-
-            // === PREPARE AND RECORD COMMANDS ===
+            device.device.resetFences({ device.swapchain->in_flight_fences[current_frame] });
 
             ui_renderer.prepareFrame(
                 window.getButtons(),
@@ -185,21 +123,18 @@ int main()
             command_pool.recordUICommands(
                 image_index,
                 render_pass,
-                framebuffers[image_index].get(),
+                framebuffers.data(),
                 ui_renderer,
                 window
             );
 
-            // === SUBMIT TO QUEUE ===
+            vk::SubmitInfo submit_info;
 
-            VkSubmitInfo submit_info = {};
-            submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-            VkSemaphore wait_semaphores[] = {
+            vk::Semaphore wait_semaphores[] = {
                 device.swapchain->available_semaphores[current_frame]
             };
-            VkPipelineStageFlags wait_stages[] = {
-                VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+            vk::PipelineStageFlags wait_stages[] = {
+                vk::PipelineStageFlagBits::eColorAttachmentOutput
             };
             submit_info.waitSemaphoreCount = 1;
             submit_info.pWaitSemaphores = wait_semaphores;
@@ -207,38 +142,32 @@ int main()
             submit_info.commandBufferCount = 1;
             submit_info.pCommandBuffers = &command_pool.buffers[image_index];
 
-            VkSemaphore signal_semaphores[] = {
+            vk::Semaphore signal_semaphores[] = {
                 device.swapchain->finished_semaphores[current_frame]
             };
             submit_info.signalSemaphoreCount = 1;
             submit_info.pSignalSemaphores = signal_semaphores;
 
-            VkResult submit_result = graphics_queue.handle.submit(
-                1,
-                &submit_info,
+            graphics_queue.handle.submit(
+                { submit_info },
                 device.swapchain->in_flight_fences[current_frame]
             );
-            isVkOk(submit_result, "Failed to submit draw command buffer");
 
-            // === PRESENT ===
-
-            VkPresentInfoKHR present_info = {};
-            present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+            vk::PresentInfoKHR present_info;
             present_info.waitSemaphoreCount = 1;
             present_info.pWaitSemaphores = signal_semaphores;
 
-            VkSwapchainKHR swapchains[] = {device.swapchain->handle};
+            vk::SwapchainKHR swapchains[] = { device.swapchain->swapchain };
             present_info.swapchainCount = 1;
             present_info.pSwapchains = swapchains;
             present_info.pImageIndices = &image_index;
 
-            present_queue.handle.presentKHR(&present_info);
+            present_queue.handle.presentKHR(present_info);
 
             current_frame = (current_frame + 1) % MAX_FRAMES;
         }
 
-        // Wait for device to finish all operations
-        device.table->handle.deviceWaitIdle();
+        device.device.waitIdle();
 
         std::cout << "Application closed successfully" << std::endl;
     }
